@@ -245,7 +245,7 @@ func main() {
 		return fmt.Errorf("failed to create directory %s: %w", configDir, err)
 	}
 	
-	configContent := fmt.Sprintf(`package config
+	configContent := `package config
 
 // Config holds the application configuration
 type Config struct {
@@ -261,7 +261,7 @@ func DefaultConfig() *Config {
 		LogLevel: "info",
 	}
 }
-`)
+`
 
 	if err := os.WriteFile(filepath.Join(configDir, "config.go"), []byte(configContent), 0644); err != nil {
 		return fmt.Errorf("failed to write config.go: %w", err)

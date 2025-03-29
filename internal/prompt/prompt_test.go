@@ -2,6 +2,7 @@ package prompt
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -22,7 +23,10 @@ func mockStdin(t *testing.T, inputs []string) *os.File {
 	go func() {
 		defer w.Close()
 		for _, input := range inputs {
-			w.Write([]byte(input + "\n"))
+			_, err := w.Write([]byte(input + "\n"))
+			if err != nil {
+				panic(fmt.Sprintf("failed to write to pipe: %v", err))
+			}
 		}
 	}()
 
@@ -45,7 +49,10 @@ func captureOutput(f func()) string {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, err := io.Copy(&buf, r)
+	if err != nil {
+		return fmt.Sprintf("error reading output: %v", err)
+	}
 
 	return buf.String()
 }

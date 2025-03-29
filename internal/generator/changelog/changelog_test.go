@@ -43,7 +43,11 @@ func TestGenerateChangelog(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config with changelog enabled
 	cfg := &model.Config{
@@ -107,7 +111,11 @@ func TestGenerateCommitlintConfig(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config with commitlint enabled
 	cfg := &model.Config{
@@ -170,7 +178,11 @@ func TestGenerateCommitMsgHook(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create Git hooks directory
 	if err := os.MkdirAll(filepath.Join(tempDir, ".git"), 0755); err != nil {
@@ -248,7 +260,11 @@ func TestGenerateWithBothDisabled(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config with both features disabled
 	cfg := &model.Config{
