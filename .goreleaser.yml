@@ -56,4 +56,4 @@ sboms:
   - id: scotter-sbom
     artifacts: binary
     documents:
-      - "${artifact}-sbom.spdx.json"
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json"
