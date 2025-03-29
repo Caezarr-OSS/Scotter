@@ -42,7 +42,11 @@ func TestGenerateMinimalStructure(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config with default type
 	cfg := &model.Config{
@@ -87,7 +91,11 @@ func TestGenerateAPIStructure(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config with API type
 	cfg := &model.Config{
@@ -139,7 +147,11 @@ func TestGenerateGitIgnore(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("failed to change to temp dir: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore original directory: %v", err)
+		}
+	}()
 	
 	// Create a config
 	cfg := &model.Config{
