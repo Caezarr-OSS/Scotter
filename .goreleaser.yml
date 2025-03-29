@@ -51,8 +51,3 @@ checksum:
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
-
-sboms:
-  - artifacts: archive
-    documents:
-      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
