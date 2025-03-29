@@ -1,0 +1,65 @@
+# {{.ProjectName}}
+
+{{if .Description}}{{.Description}}{{else}}A Go project created with Scotter.{{end}}
+
+{{if eq .ProjectType "cli"}}
+## Installation
+
+```bash
+go install {{.ModulePath}}/cmd/{{.ProjectName}}@latest
+```
+
+## Usage
+
+```bash
+{{.ProjectName}} [flags]
+```
+{{else if eq .ProjectType "api"}}
+## API Documentation
+
+This project provides a REST API with the following endpoints:
+
+- `GET /api/health` - Health check endpoint
+- `GET /api/version` - Version information
+{{end}}
+
+## Development
+
+{{if .Features.UseTaskFile}}
+### Using Task
+
+This project uses [Task](https://taskfile.dev) for build automation:
+
+```bash
+# Build the project
+task build
+
+# Run tests
+task test
+
+# Run linters
+task lint
+
+{{if ne .ProjectType "library"}}
+# Build release binaries
+task release
+{{end}}
+```
+{{end}}
+
+{{if .Features.GitHub.UseCommitLint}}
+### Commit Convention
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/).
+
+Example:
+```
+feat: add new feature
+fix: resolve bug
+docs: update documentation
+```
+{{end}}
+
+## License
+
+[MIT](LICENSE)
