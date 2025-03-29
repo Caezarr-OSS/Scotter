@@ -55,6 +55,11 @@ func (g *Generator) Generate() error {
 		if err := g.generateWorkflow("release.yml"); err != nil {
 			return err
 		}
+		
+		// Generate GoReleaser configuration
+		if err := g.generateGoReleaserConfig(); err != nil {
+			return err
+		}
 	}
 
 	// Create Dependabot configuration if enabled
@@ -131,6 +136,30 @@ func (g *Generator) generateCommitlintConfig() error {
 };`
 
 	return os.WriteFile("commitlint.config.js", []byte(content), 0644)
+}
+
+// generateGoReleaserConfig generates GoReleaser configuration
+func (g *Generator) generateGoReleaserConfig() error {
+	templatePath := filepath.Join(g.TemplateDir, "goreleaser.yml.tmpl")
+	outputPath := ".goreleaser.yml"
+	
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
+	}
+	
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %w", outputPath, err)
+	}
+	defer file.Close()
+	
+	if err := tmpl.Execute(file, g.Config); err != nil {
+		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
+	}
+	
+	fmt.Println("GoReleaser configuration generated successfully!")
+	return nil
 }
 
 // generateDependabot generates Dependabot configuration

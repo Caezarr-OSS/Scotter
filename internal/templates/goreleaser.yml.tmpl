@@ -1,4 +1,4 @@
-project_name: scotter
+project_name: {{ .ProjectName }}
 
 before:
   hooks:
@@ -14,21 +14,21 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/scotter
+    main: ./cmd/{{ .ProjectName }}
     ldflags:
       - -s -w
-      - -X main.Version={{.Version}}
-      - -X main.CommitSHA={{.Commit}}
-      - -X main.BuildDate={{.Date}}
-    binary: scotter
+      - -X main.Version={{`{{.Version}}`}}
+      - -X main.CommitSHA={{`{{.Commit}}`}}
+      - -X main.BuildDate={{`{{.Date}}`}}
+    binary: {{ .ProjectName }}
 
 archives:
   - format: tar.gz
     name_template: >-
-      {{ .ProjectName }}_
-      {{- .Version }}_
-      {{- .Os }}_
-      {{- .Arch }}
+      {{`{{ .ProjectName }}_`}}
+      {{`{{ .Version }}_`}}
+      {{`{{ .Os }}_`}}
+      {{`{{ .Arch }}`}}
     format_overrides:
       - goos: windows
         format: zip
@@ -50,9 +50,9 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  name_template: "{{`{{ incpatch .Version }}`}}-next"
 
 sboms:
   - artifacts: archive
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
+      - "{{`{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json`}}"
