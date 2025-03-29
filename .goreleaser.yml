@@ -51,3 +51,10 @@ checksum:
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
+sboms:
+  - id: scotter-sbom
+    artifacts: binary
+    documents:
+      - "${artifact}-sbom.spdx.json"
+      - "sbom.spdx.json"

@@ -53,6 +53,8 @@ snapshot:
   name_template: "{{`{{ incpatch .Version }}`}}-next"
 
 sboms:
-  - artifacts: archive
+  - id: {{`{{ .ProjectName }}`}}-sbom
+    artifacts: binary
     documents:
-      - "{{`{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json`}}"
+      - "{{`${artifact}-sbom.spdx.json`}}"
+      - "sbom.spdx.json"

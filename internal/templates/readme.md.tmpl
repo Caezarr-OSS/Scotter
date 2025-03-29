@@ -47,6 +47,24 @@ task release
 ```
 {{end}}
 
+{{if .Features.GitHub.UseReleaseWorkflow}}
+### Releases
+
+This project is configured with GoReleaser and GitHub Actions to automatically:
+- Build cross-platform binaries (Linux, Windows, macOS)
+- Generate a Software Bill of Materials (SBOM)
+- Create checksum files
+- Generate changelogs from commits
+
+When a new tag is pushed, the release workflow will create a new GitHub release with all artifacts.
+
+```bash
+# Create and push a new release
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin vX.Y.Z
+```
+{{end}}
+
 {{if .Features.GitHub.UseCommitLint}}
 ### Commit Convention
 
