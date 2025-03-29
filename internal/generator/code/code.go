@@ -283,7 +283,8 @@ func (g *Generator) generateAPIProject() error {
 	}
 	
 	// Create API server entry point
-	mainContent := fmt.Sprintf(`package main
+	projectName := g.Config.ProjectName
+	mainContent := `package main
 
 import (
 	"fmt"
@@ -318,11 +319,11 @@ func main() {
 		port = "8080"
 	}
 	
-	log.Printf("Starting %s API server on port %s...", g.Config.ProjectName, port)
+	log.Printf("Starting ` + projectName + ` API server on port %s...", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
-}`, g.Config.ProjectName)
+}`
 
 	if err := os.WriteFile(filepath.Join(mainPath, "main.go"), []byte(mainContent), 0644); err != nil {
 		return fmt.Errorf("failed to write main.go: %w", err)
