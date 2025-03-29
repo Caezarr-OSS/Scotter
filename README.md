@@ -1,7 +1,7 @@
 # Scotter
 
 <p align="center">
-  <img src="assets/img/scotter.png" alt="Scotter Logo" width="300">
+  <img src="./assets/img/scotter.png" alt="Scotter Logo" width="300">
 </p>
 
 Scotter is a scaffolding tool for Go projects that simplifies GitHub environment setup and development best practices integration.
