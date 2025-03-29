@@ -4,7 +4,7 @@
 
 Scotter is a scaffolding tool for Go projects that simplifies GitHub environment setup and development best practices integration.
 
-<img src="https://raw.githubusercontent.com/Caezarr-OSS/Scotter/develop/assets/img/scotter.png" alt="Scotter Logo" width="300"/>
+![Scotter Logo](assets/img/scotter.png)
 
 ## Features
 
