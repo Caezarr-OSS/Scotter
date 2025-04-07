@@ -4,41 +4,36 @@ import (
 	"testing"
 )
 
-// TestProjectTypeString tests the String method of ProjectType
-func TestProjectTypeString(t *testing.T) {
+// TestGoProjectTypeString tests the String method of GoProjectType
+func TestGoProjectTypeString(t *testing.T) {
 	tests := []struct {
 		name         string
-		projectType  ProjectType
+		projectType  GoProjectType
 		expectedName string
 	}{
 		{
 			name:         "default type",
-			projectType:  DefaultType,
+			projectType:  DefaultGoType,
 			expectedName: "Default",
 		},
 		{
 			name:         "library type",
-			projectType:  LibraryType,
+			projectType:  LibraryGoType,
 			expectedName: "Library",
 		},
 		{
 			name:         "CLI type",
-			projectType:  CLIType,
+			projectType:  CLIGoType,
 			expectedName: "CLI",
 		},
 		{
 			name:         "API type",
-			projectType:  APIType,
+			projectType:  APIGoType,
 			expectedName: "API",
 		},
 		{
-			name:         "complete type",
-			projectType:  CompleteType,
-			expectedName: "Complete",
-		},
-		{
 			name:         "unknown type",
-			projectType:  ProjectType("unknown"),
+			projectType:  GoProjectType("unknown"),
 			expectedName: "Unknown",
 		},
 	}
@@ -64,7 +59,10 @@ func TestConfigValidation(t *testing.T) {
 			name: "valid config",
 			config: Config{
 				ProjectName: "testproject",
-				ProjectType: DefaultType,
+				Language: GoLang,
+				Go: GoConfig{
+					ProjectType: DefaultGoType,
+				},
 			},
 			expectError: false,
 		},
@@ -72,15 +70,18 @@ func TestConfigValidation(t *testing.T) {
 			name: "empty project name",
 			config: Config{
 				ProjectName: "",
-				ProjectType: DefaultType,
+				Language: GoLang,
+				Go: GoConfig{
+					ProjectType: DefaultGoType,
+				},
 			},
 			expectError: true,
 		},
 		{
-			name: "invalid project type",
+			name: "invalid language",
 			config: Config{
 				ProjectName: "testproject",
-				ProjectType: ProjectType("invalid"),
+				Language: LanguageType("invalid"),
 			},
 			expectError: true,
 		},
@@ -96,120 +97,71 @@ func TestConfigValidation(t *testing.T) {
 	}
 }
 
-// TestDefaultFeatures tests the default features for each project type
-func TestDefaultFeatures(t *testing.T) {
-	tests := []struct {
-		name        string
-		projectType ProjectType
-		checkFunc   func(*testing.T, Features)
-	}{
-		{
-			name:        "default type features",
-			projectType: DefaultType,
-			checkFunc: func(t *testing.T, f Features) {
-				if f.UseTaskFile {
-					t.Error("expected UseTaskFile to be false for DefaultType")
-				}
-				if f.GitHub.UseWorkflows {
-					t.Error("expected UseWorkflows to be false for DefaultType")
-				}
-			},
-		},
-		{
-			name:        "library type features",
-			projectType: LibraryType,
-			checkFunc: func(t *testing.T, f Features) {
-				if !f.GitHub.UseWorkflows {
-					t.Error("expected UseWorkflows to be true for LibraryType")
-				}
-				if !f.GitHub.GenerateChangelog {
-					t.Error("expected GenerateChangelog to be true for LibraryType")
-				}
-			},
-		},
-		{
-			name:        "CLI type features",
-			projectType: CLIType,
-			checkFunc: func(t *testing.T, f Features) {
-				if !f.UseTaskFile {
-					t.Error("expected UseTaskFile to be true for CLIType")
-				}
-				if !f.GitHub.UseWorkflows {
-					t.Error("expected UseWorkflows to be true for CLIType")
-				}
-				if !f.GitHub.UseReleaseWorkflow {
-					t.Error("expected UseReleaseWorkflow to be true for CLIType")
-				}
-			},
-		},
-		{
-			name:        "API type features",
-			projectType: APIType,
-			checkFunc: func(t *testing.T, f Features) {
-				if !f.UseTaskFile {
-					t.Error("expected UseTaskFile to be true for APIType")
-				}
-				if !f.GitHub.UseWorkflows {
-					t.Error("expected UseWorkflows to be true for APIType")
-				}
-			},
-		},
-		{
-			name:        "complete type features",
-			projectType: CompleteType,
-			checkFunc: func(t *testing.T, f Features) {
-				if !f.UseTaskFile {
-					t.Error("expected UseTaskFile to be true for CompleteType")
-				}
-				if !f.GitHub.UseWorkflows {
-					t.Error("expected UseWorkflows to be true for CompleteType")
-				}
-				if !f.GitHub.UseCommitLint {
-					t.Error("expected UseCommitLint to be true for CompleteType")
-				}
-				if !f.GitHub.UseReleaseWorkflow {
-					t.Error("expected UseReleaseWorkflow to be true for CompleteType")
-				}
-				if !f.GitHub.UseDependabot {
-					t.Error("expected UseDependabot to be true for CompleteType")
-				}
-				if !f.GitHub.GenerateChangelog {
-					t.Error("expected GenerateChangelog to be true for CompleteType")
-				}
-			},
-		},
+// TestPipelineFeatures tests the available pipeline features
+func TestPipelineFeatures(t *testing.T) {
+	features := AvailablePipelineFeatures()
+	
+	// Verify that we have the expected number of features
+	if len(features) < 3 {
+		t.Errorf("expected at least 3 pipeline features, got %d", len(features))
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			features := DefaultFeaturesForType(tt.projectType)
-			tt.checkFunc(t, features)
-		})
+	
+	// Check for specific features
+	foundCommitLint := false
+	foundChangelog := false
+	foundCI := false
+	
+	for _, f := range features {
+		switch f.ID {
+		case "commit-lint":
+			foundCommitLint = true
+		case "changelog":
+			foundChangelog = true
+			// Check that changelog depends on commit-lint
+			hasDependency := false
+			for _, dep := range f.Dependencies {
+				if dep == "commit-lint" {
+					hasDependency = true
+					break
+				}
+			}
+			if !hasDependency {
+				t.Error("expected changelog to depend on commit-lint")
+			}
+		case "ci":
+			foundCI = true
+		}
+	}
+	
+	if !foundCommitLint {
+		t.Error("commit-lint feature not found")
+	}
+	if !foundChangelog {
+		t.Error("changelog feature not found")
+	}
+	if !foundCI {
+		t.Error("ci feature not found")
 	}
 }
 
 // TestNewConfig tests the NewConfig constructor function
 func TestNewConfig(t *testing.T) {
-	config := NewConfig("testproject", CLIType)
+	config := NewConfig()
 	
-	if config.ProjectName != "testproject" {
-		t.Errorf("expected ProjectName to be 'testproject', got %q", config.ProjectName)
+	// Check that it has default values
+	if config.ProjectName != "" {
+		t.Errorf("expected ProjectName to be empty, got %q", config.ProjectName)
 	}
 	
-	if config.ProjectType != CLIType {
-		t.Errorf("expected ProjectType to be CLIType, got %v", config.ProjectType)
+	if config.Language != GoLang {
+		t.Errorf("expected Language to be GoLang, got %v", config.Language)
 	}
 	
-	// Check that it has default features for CLI type
-	if !config.Features.UseTaskFile {
-		t.Error("expected UseTaskFile to be true for CLI type")
+	if config.Go.ProjectType != DefaultGoType {
+		t.Errorf("expected Go.ProjectType to be DefaultGoType, got %v", config.Go.ProjectType)
 	}
 	
-	if !config.Features.GitHub.UseWorkflows {
-		t.Error("expected UseWorkflows to be true for CLI type")
-	}
+
 	
-	if !config.Features.GitHub.UseReleaseWorkflow {
-		t.Error("expected UseReleaseWorkflow to be true for CLI type")
-	}
+
 }
