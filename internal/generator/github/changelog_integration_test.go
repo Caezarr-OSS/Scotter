@@ -25,64 +25,8 @@ func TestChangelogIntegration(t *testing.T) {
 
 	// Create project structure
 	projectDir := filepath.Join(tempDir, "test-project")
-	githubDir := filepath.Join(projectDir, ".github", "workflows")
-	templatesDir := filepath.Join(tempDir, "templates", "github")
-
-	// Create directories
-	for _, dir := range []string{githubDir, templatesDir} {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			t.Fatalf("Failed to create directory %s: %v", dir, err)
-		}
-	}
-
-	// Create test template files
-	templates := map[string]string{
-		"changelog.yml": `name: Generate Changelog
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - master
-    paths-ignore:
-      - 'CHANGELOG.md'
-
-jobs:
-  generate-changelog:
-    name: Generate Changelog
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      
-      - name: Install conventional-changelog-cli
-        run: npm install -g conventional-changelog-cli
-      
-      - name: Generate changelog
-        run: conventional-changelog -p angular -i CHANGELOG.md -s
-      
-      - name: Commit and push if changed
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update changelog [skip ci]"
-          git push`,
-	}
-
-	for name, content := range templates {
-		if err := os.WriteFile(filepath.Join(templatesDir, name), []byte(content), 0644); err != nil {
-			t.Fatalf("Failed to write template %s: %v", name, err)
-		}
+	if err := os.MkdirAll(projectDir, 0755); err != nil {
+		t.Fatalf("Failed to create project directory: %v", err)
 	}
 
 	// Test cases
@@ -110,57 +54,29 @@ jobs:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Clean the workflows directory
-			files, _ := os.ReadDir(githubDir)
-			for _, f := range files {
-				os.Remove(filepath.Join(githubDir, f.Name()))
-			}
-
-			// Create a test config
-			cfg := &model.Config{
-				ProjectName: "test-project",
-				Pipeline: model.PipelineConfig{
-					UseGitHubActions: true,
-					SelectedFeatures: tc.features,
-				},
+			// Clean up any existing workflow files
+			workflowsDir := filepath.Join(projectDir, ".github", "workflows")
+			if _, err := os.Stat(workflowsDir); err == nil {
+				files, _ := os.ReadDir(workflowsDir)
+				for _, f := range files {
+					os.Remove(filepath.Join(workflowsDir, f.Name()))
+				}
 			}
 
 			// Resolve dependencies
 			resolvedFeatures := model.ResolveFeatureDependencies(tc.features)
-			cfg.Pipeline.SelectedFeatures = resolvedFeatures
 
-			// Create a custom generator function for testing
-			generateChangelogWorkflow := func() error {
-				// Only generate if changelog is in the resolved features
-				hasChangelog := false
-				for _, feature := range resolvedFeatures {
-					if feature == "changelog" {
-						hasChangelog = true
-						break
-					}
-				}
-
-				if !hasChangelog {
-					return nil
-				}
-
-				// Read the template
-				templateBytes, err := os.ReadFile(filepath.Join(templatesDir, "changelog.yml"))
-				if err != nil {
-					return err
-				}
-
-				// Write the workflow file
-				return os.WriteFile(filepath.Join(githubDir, "changelog.yml"), templateBytes, 0644)
-			}
+			// Create a test mock generator
+			mockGenerator := NewTestMockGenerator(projectDir, "", resolvedFeatures)
 
 			// Generate the changelog workflow
-			if err := generateChangelogWorkflow(); err != nil {
+			if err := mockGenerator.GenerateChangelogWorkflow(); err != nil {
 				t.Fatalf("Failed to generate changelog workflow: %v", err)
 			}
 
 			// Check if the workflow file was created
-			workflowPath := filepath.Join(githubDir, "changelog.yml")
+			// We already have workflowsDir defined above, so we don't need to redefine it
+			workflowPath := filepath.Join(workflowsDir, "changelog.yml")
 			fileExists := true
 			if _, err := os.Stat(workflowPath); os.IsNotExist(err) {
 				fileExists = false
