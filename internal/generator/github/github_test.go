@@ -16,21 +16,35 @@ func TestGenerateWorkflows(t *testing.T) {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
+	
+	// Sauvegarder le répertoire de travail actuel
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+	defer os.Chdir(originalDir) // Revenir au répertoire d'origine à la fin du test
+	
+	// Changer le répertoire de travail vers le répertoire temporaire
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("Failed to change directory to temp dir: %v", err)
+	}
+	
+	t.Logf("Changed working directory to: %s", tempDir)
 
 	// Create necessary subdirectories
-	workflowsDir := filepath.Join(tempDir, ".github", "workflows")
+	workflowsDir := filepath.Join(".github", "workflows")
 	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
 		t.Fatalf("Failed to create workflows dir: %v", err)
 	}
 
 	// Create a templates directory and copy our template
-	templatesDir := filepath.Join(tempDir, "templates", "github")
+	templatesDir := filepath.Join("templates", "github")
 	if err := os.MkdirAll(templatesDir, 0755); err != nil {
 		t.Fatalf("Failed to create templates dir: %v", err)
 	}
 
-	// Create a simple template file for testing
-	templateContent := `name: Generate Changelog
+	// Create templates for testing
+	changelogTemplate := `name: Generate Changelog
 on:
   workflow_dispatch:
 jobs:
@@ -40,8 +54,25 @@ jobs:
       - uses: actions/checkout@v3
       - run: echo "Generate changelog"`
 
-	if err := os.WriteFile(filepath.Join(templatesDir, "changelog.yml"), []byte(templateContent), 0644); err != nil {
-		t.Fatalf("Failed to write template file: %v", err)
+	ciTemplate := `name: CI
+on:
+  push:
+    branches: [ main, master ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "Run tests"`
+
+	// Write the changelog template
+	if err := os.WriteFile(filepath.Join(templatesDir, "changelog.yml.tmpl"), []byte(changelogTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write changelog template file: %v", err)
+	}
+	
+	// Write the CI template
+	if err := os.WriteFile(filepath.Join(templatesDir, "ci.yml.tmpl"), []byte(ciTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write CI template file: %v", err)
 	}
 
 	// Test cases
@@ -80,7 +111,11 @@ jobs:
 			}
 
 			// Create a generator with the test config
-			generator := NewGenerator(cfg, templatesDir)
+			t.Logf("Using templates directory: %s", templatesDir)
+			generator := &Generator{
+				Config:      cfg,
+				TemplateDir: templatesDir,
+			}
 
 			// Generate all workflows
 			err = generator.Generate()

@@ -54,25 +54,50 @@ func TestChangelogIntegration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Clean up any existing workflow files
+			// Créer le répertoire .github/workflows s'il n'existe pas
 			workflowsDir := filepath.Join(projectDir, ".github", "workflows")
-			if _, err := os.Stat(workflowsDir); err == nil {
-				files, _ := os.ReadDir(workflowsDir)
-				for _, f := range files {
-					os.Remove(filepath.Join(workflowsDir, f.Name()))
-				}
+			if err := os.MkdirAll(workflowsDir, 0755); err != nil {
+				t.Fatalf("Failed to create workflows directory: %v", err)
+			}
+			
+			// Clean up any existing workflow files
+			files, _ := os.ReadDir(workflowsDir)
+			for _, f := range files {
+				os.Remove(filepath.Join(workflowsDir, f.Name()))
 			}
 
 			// Resolve dependencies
 			resolvedFeatures := model.ResolveFeatureDependencies(tc.features)
 
+			// Afficher les informations sur les chemins des templates
+			cwd, _ := os.Getwd()
+			t.Logf("Current working directory: %s", cwd)
+			t.Logf("Templates directory: %s", filepath.Join(cwd, "templates", "github"))
+
+			// Vérifier si les templates existent
+			templatesDir := filepath.Join(cwd, "templates", "github")
+			if _, err := os.Stat(templatesDir); err == nil {
+				t.Logf("Templates directory exists: %s", templatesDir)
+				files, _ := os.ReadDir(templatesDir)
+				t.Logf("Files in templates directory:")
+				for _, file := range files {
+					t.Logf("- %s", file.Name())
+				}
+			} else {
+				t.Logf("Templates directory does not exist: %s (Error: %v)", templatesDir, err)
+			}
+
 			// Create a test mock generator
-			mockGenerator := NewTestMockGenerator(projectDir, "", resolvedFeatures)
+			// Utiliser le répertoire de templates détecté
+			mockGenerator := NewTestMockGenerator(projectDir, templatesDir, resolvedFeatures)
 
 			// Generate the changelog workflow
 			if err := mockGenerator.GenerateChangelogWorkflow(); err != nil {
 				t.Fatalf("Failed to generate changelog workflow: %v", err)
 			}
+			
+			// Nous ne générons pas le workflow CI dans ce test
+			// car nous testons uniquement la fonctionnalité changelog
 
 			// Check if the workflow file was created
 			// We already have workflowsDir defined above, so we don't need to redefine it
