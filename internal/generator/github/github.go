@@ -40,6 +40,7 @@ func (g *Generator) Generate() error {
 	hasCommitLint := false
 	hasRelease := false
 	hasDependabot := false
+	hasChangelog := false
 
 	for _, feature := range g.Config.Pipeline.SelectedFeatures {
 		switch feature {
@@ -51,6 +52,8 @@ func (g *Generator) Generate() error {
 			hasRelease = true
 		case "dependabot":
 			hasDependabot = true
+		case "changelog":
+			hasChangelog = true
 		}
 	}
 
@@ -78,6 +81,13 @@ func (g *Generator) Generate() error {
 	// Create Dependabot configuration if enabled
 	if hasDependabot {
 		if err := g.GenerateDependabotConfig(); err != nil {
+			return err
+		}
+	}
+	
+	// Create Changelog workflow if enabled
+	if hasChangelog {
+		if err := g.GenerateChangelogWorkflow(); err != nil {
 			return err
 		}
 	}
@@ -131,8 +141,63 @@ func (g *Generator) GenerateDependabotConfig() error {
 
 // generateWorkflow generates a GitHub workflow file from template
 func (g *Generator) generateWorkflow(workflowName string) error {
-	templatePath := filepath.Join(g.TemplateDir, "github", workflowName+".tmpl")
-	outputPath := filepath.Join(".github", "workflows", workflowName)
+	// Liste des chemins possibles pour trouver le template
+	possiblePaths := []string{
+		// Chemin relatif standard
+		filepath.Join("templates", "github", workflowName+".tmpl"),
+		// Chemin basé sur TemplateDir (pour les tests)
+		filepath.Join(g.TemplateDir, workflowName),
+		// Chemin basé sur TemplateDir avec extension .tmpl
+		filepath.Join(g.TemplateDir, workflowName+".tmpl"),
+		// Chemin basé sur TemplateDir avec sous-dossier github
+		filepath.Join(g.TemplateDir, "github", workflowName),
+		// Chemin basé sur TemplateDir avec sous-dossier github et extension .tmpl
+		filepath.Join(g.TemplateDir, "github", workflowName+".tmpl"),
+		// Essayer avec l'extension .yml (pour les tests)
+		filepath.Join(g.TemplateDir, workflowName+".yml"),
+		// Essayer avec l'extension .yml dans le sous-dossier github
+		filepath.Join(g.TemplateDir, "github", workflowName+".yml"),
+	}
+	
+	// Chercher le template dans tous les chemins possibles
+	var templatePath string
+	var templateFound bool
+	
+	for _, path := range possiblePaths {
+		_, err := os.Stat(path)
+		if err == nil {
+			templateFound = true
+			templatePath = path
+			break
+		}
+	}
+	
+	if !templateFound {
+		return fmt.Errorf("template not found: %s (tried %v)", workflowName, possiblePaths)
+	}
+	
+	// Créer le répertoire .github/workflows s'il n'existe pas
+	workflowsDir := filepath.Join(".github", "workflows")
+	
+	// Nous n'avons plus besoin d'obtenir le répertoire de travail actuel
+	
+	// Créer le répertoire .github/workflows
+	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create workflows directory: %v", err)
+	}
+	
+	// Vérifier si le répertoire a bien été créé
+	if _, err := os.Stat(workflowsDir); os.IsNotExist(err) {
+		return fmt.Errorf("workflows directory does not exist after creation: %v", err)
+	}
+
+	outputPath := filepath.Join(workflowsDir, workflowName)
+	
+	// Nous n'avons plus besoin de convertir les chemins en chemins absolus
+	
+	// Vérifier si le fichier existe
+	_, err := os.Stat(templatePath)
+	// Vérification de l'existence du fichier effectuée
 	
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
