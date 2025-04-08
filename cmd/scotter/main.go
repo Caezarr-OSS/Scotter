@@ -16,7 +16,7 @@ var (
 
 func main() {
 	fmt.Printf("Scotter v%s (%s) built on %s\n", Version, CommitSHA, BuildDate)
-	fmt.Println("A Go project bootstrapper for GitHub")
+	fmt.Println("A modular project bootstrapper with pipeline features")
 
 	if len(os.Args) < 2 {
 		printUsage()
@@ -44,6 +44,15 @@ func main() {
 func printUsage() {
 	fmt.Println("Usage: scotter <command>")
 	fmt.Println("Commands:")
-	fmt.Println("  init      Initialize a Go project with GitHub support")
+	fmt.Println("  init      Initialize a project with customizable pipeline features")
 	fmt.Println("  version   Show version information")
+	fmt.Println("\nSupported languages:")
+	fmt.Println("  - Go")
+	fmt.Println("  - Shell/Script (No specific language)")
+	fmt.Println("\nPipeline features:")
+	fmt.Println("  - Commit Lint")
+	fmt.Println("  - Changelog Generation")
+	fmt.Println("  - Automatic Release")
+	fmt.Println("  - Dependabot")
+	fmt.Println("  - CI Pipeline")
 }
