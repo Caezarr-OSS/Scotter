@@ -25,52 +25,108 @@ func NewGenerator(cfg *model.Config, templateDir string) *Generator {
 }
 
 // Generate creates GitHub-related files
+// This is a legacy method for backward compatibility
 func (g *Generator) Generate() error {
-	if !g.Config.Features.GitHub.UseWorkflows {
+	// Check if GitHub Actions is enabled in the pipeline
+	if !g.Config.Pipeline.UseGitHubActions {
 		fmt.Println("Skipping GitHub workflows generation...")
 		return nil
 	}
 
 	fmt.Println("Generating GitHub configuration...")
 
+	// Check which features are enabled
+	hasCI := false
+	hasCommitLint := false
+	hasRelease := false
+	hasDependabot := false
+
+	for _, feature := range g.Config.Pipeline.SelectedFeatures {
+		switch feature {
+		case "ci":
+			hasCI = true
+		case "commit-lint":
+			hasCommitLint = true
+		case "release":
+			hasRelease = true
+		case "dependabot":
+			hasDependabot = true
+		}
+	}
+
 	// Create CI workflow
-	if err := g.generateWorkflow("ci.yml"); err != nil {
-		return err
+	if hasCI {
+		if err := g.GenerateCIWorkflow(); err != nil {
+			return err
+		}
 	}
 
 	// Create commitlint workflow if enabled
-	if g.Config.Features.GitHub.UseCommitLint {
-		if err := g.generateWorkflow("commitlint.yml"); err != nil {
-			return err
-		}
-		
-		// Generate commitlint.config.js
-		if err := g.generateCommitlintConfig(); err != nil {
+	if hasCommitLint {
+		if err := g.GenerateCommitLintWorkflow(); err != nil {
 			return err
 		}
 	}
 
 	// Create release workflow if enabled
-	if g.Config.Features.GitHub.UseReleaseWorkflow {
-		if err := g.generateWorkflow("release.yml"); err != nil {
-			return err
-		}
-		
-		// Generate GoReleaser configuration
-		if err := g.generateGoReleaserConfig(); err != nil {
+	if hasRelease {
+		if err := g.GenerateReleaseWorkflow(); err != nil {
 			return err
 		}
 	}
 
 	// Create Dependabot configuration if enabled
-	if g.Config.Features.GitHub.UseDependabot {
-		if err := g.generateDependabot(); err != nil {
+	if hasDependabot {
+		if err := g.GenerateDependabotConfig(); err != nil {
 			return err
 		}
 	}
 
 	fmt.Println("GitHub configuration generated successfully!")
 	return nil
+}
+
+// GenerateCIWorkflow generates a CI workflow file
+func (g *Generator) GenerateCIWorkflow() error {
+	fmt.Println("Generating CI workflow...")
+	return g.generateWorkflow("ci.yml")
+}
+
+// GenerateCommitLintWorkflow generates a commit lint workflow file
+func (g *Generator) GenerateCommitLintWorkflow() error {
+	fmt.Println("Generating commit lint workflow...")
+	return g.generateWorkflow("commitlint.yml")
+}
+
+// GenerateChangelogWorkflow generates a changelog workflow file
+func (g *Generator) GenerateChangelogWorkflow() error {
+	fmt.Println("Generating changelog workflow...")
+	return g.generateWorkflow("changelog.yml")
+}
+
+// GenerateReleaseWorkflow generates a release workflow file
+func (g *Generator) GenerateReleaseWorkflow() error {
+	fmt.Println("Generating release workflow...")
+	
+	// Generate the workflow file
+	if err := g.generateWorkflow("release.yml"); err != nil {
+		return err
+	}
+	
+	// For Go projects, also generate GoReleaser configuration
+	if g.Config.Language == model.GoLang {
+		if err := g.generateGoReleaserConfig(); err != nil {
+			return err
+		}
+	}
+	
+	return nil
+}
+
+// GenerateDependabotConfig generates Dependabot configuration
+func (g *Generator) GenerateDependabotConfig() error {
+	fmt.Println("Generating Dependabot configuration...")
+	return g.generateDependabot()
 }
 
 // generateWorkflow generates a GitHub workflow file from template
@@ -164,15 +220,22 @@ func (g *Generator) generateGoReleaserConfig() error {
 
 // generateDependabot generates Dependabot configuration
 func (g *Generator) generateDependabot() error {
-	content := `version: 2
-updates:
-  - package-ecosystem: "gomod"
+	// Create base content
+	content := "version: 2\nupdates:\n"
+
+	// Add language-specific Dependabot configurations
+	if g.Config.Language == model.GoLang {
+		content += `  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "github-actions"
+`
+	}
+
+	// Add GitHub Actions Dependabot configuration
+	content += `  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"

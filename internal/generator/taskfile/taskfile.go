@@ -26,7 +26,8 @@ func NewGenerator(cfg *model.Config, templateDir string) *Generator {
 
 // Generate creates the Taskfile.yml
 func (g *Generator) Generate() error {
-	if !g.Config.Features.UseTaskFile {
+	// Only generate Taskfile for Go projects that have UseTaskFile enabled
+	if g.Config.Language != model.GoLang || !g.Config.Go.UseTaskFile {
 		fmt.Println("Skipping Taskfile generation...")
 		return nil
 	}

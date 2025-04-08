@@ -22,8 +22,22 @@ func NewGenerator(cfg *model.Config) *Generator {
 }
 
 // Generate creates CHANGELOG.md and conventional commits configuration
+// This is a legacy method for backward compatibility
 func (g *Generator) Generate() error {
-	if !g.Config.Features.GitHub.GenerateChangelog && !g.Config.Features.GitHub.UseCommitLint {
+	// Check if any changelog features are selected in the pipeline
+	isChangelogEnabled := false
+	isCommitLintEnabled := false
+
+	for _, feature := range g.Config.Pipeline.SelectedFeatures {
+		if feature == "changelog" {
+			isChangelogEnabled = true
+		}
+		if feature == "commit-lint" {
+			isCommitLintEnabled = true
+		}
+	}
+
+	if !isChangelogEnabled && !isCommitLintEnabled {
 		fmt.Println("Skipping changelog and conventional commits setup...")
 		return nil
 	}
@@ -31,15 +45,15 @@ func (g *Generator) Generate() error {
 	fmt.Println("Setting up changelog and conventional commits...")
 
 	// Generate CHANGELOG.md if enabled
-	if g.Config.Features.GitHub.GenerateChangelog {
-		if err := g.generateChangelog(); err != nil {
+	if isChangelogEnabled {
+		if err := g.GenerateChangelog(); err != nil {
 			return fmt.Errorf("failed to generate CHANGELOG.md: %w", err)
 		}
 	}
 
 	// Generate .commitlintrc.js if conventional commits are enabled
-	if g.Config.Features.GitHub.UseCommitLint {
-		if err := g.generateCommitlintConfig(); err != nil {
+	if isCommitLintEnabled {
+		if err := g.GenerateCommitLintConfig(); err != nil {
 			return fmt.Errorf("failed to generate commitlint config: %w", err)
 		}
 	}
@@ -48,8 +62,8 @@ func (g *Generator) Generate() error {
 	return nil
 }
 
-// generateChangelog creates a CHANGELOG.md file
-func (g *Generator) generateChangelog() error {
+// GenerateChangelog creates a CHANGELOG.md file
+func (g *Generator) GenerateChangelog() error {
 	year := time.Now().Year()
 	
 	content := fmt.Sprintf(`# Changelog
@@ -91,8 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	return os.WriteFile("CHANGELOG.md", []byte(content), 0644)
 }
 
-// generateCommitlintConfig creates a commitlint configuration file
-func (g *Generator) generateCommitlintConfig() error {
+// GenerateCommitLintConfig creates a commitlint configuration file
+func (g *Generator) GenerateCommitLintConfig() error {
 	content := `module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
@@ -135,7 +149,16 @@ func (g *Generator) generateCommitlintConfig() error {
 
 // GenerateCommitMsgHook creates a Git pre-commit hook for commitlint
 func (g *Generator) GenerateCommitMsgHook() error {
-	if !g.Config.Features.GitHub.UseCommitLint {
+	// Check if commit-lint is enabled in the pipeline
+	isCommitLintEnabled := false
+	for _, feature := range g.Config.Pipeline.SelectedFeatures {
+		if feature == "commit-lint" {
+			isCommitLintEnabled = true
+			break
+		}
+	}
+
+	if !isCommitLintEnabled {
 		return nil
 	}
 

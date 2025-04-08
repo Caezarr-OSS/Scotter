@@ -27,6 +27,12 @@ func NewGenerator(cfg *model.Config, templateDir string) *Generator {
 
 // Generate creates the main Go files based on project type
 func (g *Generator) Generate() error {
+	// Only generate Go code for Go projects
+	if g.Config.Language != model.GoLang {
+		fmt.Println("Skipping Go code generation for non-Go project...")
+		return nil
+	}
+
 	fmt.Println("Generating Go code files...")
 
 	// Initialize go.mod
@@ -40,29 +46,27 @@ func (g *Generator) Generate() error {
 	}
 
 	// Generate code based on project type
-	switch g.Config.ProjectType {
-	case model.DefaultType:
+	switch g.Config.Go.ProjectType {
+	case model.DefaultGoType:
 		return g.generateDefaultProject()
-	case model.LibraryType:
+	case model.LibraryGoType:
 		return g.generateLibraryProject()
-	case model.CLIType:
+	case model.CLIGoType:
 		return g.generateCLIProject()
-	case model.APIType:
+	case model.APIGoType:
 		return g.generateAPIProject()
-	case model.CompleteType:
-		return g.generateCompleteProject()
 	default:
-		return fmt.Errorf("unknown project type: %s", g.Config.ProjectType)
+		return fmt.Errorf("unknown project type: %s", g.Config.Go.ProjectType)
 	}
 }
 
 // generateGoMod initializes the go.mod file
 func (g *Generator) generateGoMod() error {
-	cmdStr := fmt.Sprintf("go mod init %s", g.Config.ModulePath)
+	cmdStr := fmt.Sprintf("go mod init %s", g.Config.Go.ModulePath)
 	
 	// Execute the command
 	fmt.Println("Initializing Go module:", cmdStr)
-	cmd := exec.Command("go", "mod", "init", g.Config.ModulePath)
+	cmd := exec.Command("go", "mod", "init", g.Config.Go.ModulePath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	
@@ -95,7 +99,7 @@ func (g *Generator) generateReadme() error {
 		Description string
 	}{
 		Config:      g.Config,
-		Description: fmt.Sprintf("A %s Go project", g.Config.ProjectType),
+		Description: fmt.Sprintf("A %s Go project", g.Config.Go.ProjectType),
 	}
 	
 	if err := tmpl.Execute(file, data); err != nil {

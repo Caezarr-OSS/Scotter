@@ -48,10 +48,16 @@ func TestGenerateMinimalStructure(t *testing.T) {
 		}
 	}()
 	
-	// Create a config with default type
+	// Create a config with Go language and default type
 	cfg := &model.Config{
 		ProjectName: "testproject",
-		ProjectType: model.DefaultType,
+		Language: model.GoLang,
+		Go: model.GoConfig{
+			ProjectType: model.DefaultGoType,
+		},
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+		},
 	}
 	
 	// Create and run the generator
@@ -97,10 +103,16 @@ func TestGenerateAPIStructure(t *testing.T) {
 		}
 	}()
 	
-	// Create a config with API type
+	// Create a config with Go language and API type
 	cfg := &model.Config{
 		ProjectName: "testapi",
-		ProjectType: model.APIType,
+		Language: model.GoLang,
+		Go: model.GoConfig{
+			ProjectType: model.APIGoType,
+		},
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+		},
 	}
 	
 	// Create and run the generator
@@ -153,9 +165,10 @@ func TestGenerateGitIgnore(t *testing.T) {
 		}
 	}()
 	
-	// Create a config
+	// Create a config with Go language
 	cfg := &model.Config{
 		ProjectName: "testproject",
+		Language: model.GoLang,
 	}
 	
 	// Create and run the generator

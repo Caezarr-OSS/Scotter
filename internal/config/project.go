@@ -4,14 +4,14 @@ import (
 	"github.com/Caezarr-OSS/Scotter/internal/model"
 )
 
-// GetDefaultConfig retourne une configuration par défaut
-// Cette fonction existe pour rétrocompatibilité
+// GetDefaultConfig returns a default configuration
+// This function exists for backward compatibility
 func GetDefaultConfig() *model.Config {
-	return model.NewDefaultConfig()
+	return model.NewConfig()
 }
 
-// ValidateConfig vérifie si la configuration est valide
-// Cette fonction existe pour rétrocompatibilité
+// ValidateConfig checks if the configuration is valid
+// This function exists for backward compatibility
 func ValidateConfig(config *model.Config) error {
 	return model.ValidateConfig(config)
 }

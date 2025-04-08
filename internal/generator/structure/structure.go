@@ -26,46 +26,48 @@ func (g *Generator) Generate() error {
 
 	// Base directories needed for all project types
 	dirs := []string{
-		".",                                        // Root directory
-		filepath.Join(".github"),                   // GitHub configuration directory
-		filepath.Join(".github", "workflows"),      // GitHub Actions workflows
+		".", // Root directory
 	}
 
-	// Add type-specific directories
-	switch g.Config.ProjectType {
-	case model.DefaultType:
-		// Minimal structure, nothing to add
-	case model.LibraryType:
-		dirs = append(dirs, "pkg")
-	case model.CLIType:
-		dirs = append(dirs, 
-			"cmd",
-			filepath.Join("cmd", g.Config.ProjectName),
-			"internal",
-			filepath.Join("internal", "config"),
+	// Add GitHub directories if GitHub Actions is enabled
+	if g.Config.Pipeline.UseGitHubActions {
+		dirs = append(dirs,
+			filepath.Join(".github"),              // GitHub configuration directory
+			filepath.Join(".github", "workflows"), // GitHub Actions workflows
 		)
-	case model.APIType:
-		dirs = append(dirs, 
-			"cmd",
-			filepath.Join("cmd", g.Config.ProjectName),
-			"internal",
-			filepath.Join("internal", "api"),
-			filepath.Join("internal", "config"),
-			filepath.Join("internal", "middleware"),
-			filepath.Join("internal", "handler"),
-		)
-	case model.CompleteType:
-		dirs = append(dirs, 
-			"cmd",
-			filepath.Join("cmd", g.Config.ProjectName),
-			"internal",
-			filepath.Join("internal", "api"),
-			filepath.Join("internal", "config"),
-			filepath.Join("internal", "middleware"),
-			filepath.Join("internal", "handler"),
-			"pkg",
-			"docs",
+	}
+
+	// Add language-specific directories
+	if g.Config.Language == model.GoLang {
+		// Add Go-specific directories based on project type
+		switch g.Config.Go.ProjectType {
+		case model.DefaultGoType:
+			// Minimal structure, nothing to add
+		case model.LibraryGoType:
+			dirs = append(dirs, "pkg")
+		case model.CLIGoType:
+			dirs = append(dirs,
+				"cmd",
+				filepath.Join("cmd", g.Config.ProjectName),
+				"internal",
+				filepath.Join("internal", "config"),
+			)
+		case model.APIGoType:
+			dirs = append(dirs,
+				"cmd",
+				filepath.Join("cmd", g.Config.ProjectName),
+				"internal",
+				filepath.Join("internal", "api"),
+				filepath.Join("internal", "config"),
+				filepath.Join("internal", "middleware"),
+				filepath.Join("internal", "handler"),
+			)
+		}
+	} else if g.Config.Language == model.NoLang {
+		// For shell/script projects, create a minimal structure
+		dirs = append(dirs,
 			"scripts",
+			"docs",
 		)
 	}
 
@@ -82,7 +84,13 @@ func (g *Generator) Generate() error {
 
 // GenerateGitIgnore creates a .gitignore file
 func (g *Generator) GenerateGitIgnore() error {
-	content := `# Binaries for programs and plugins
+	// Base gitignore content
+	content := "# OS specific files\n.DS_Store\nThumbs.db\n\n# IDE specific files\n.idea/\n.vscode/\n*.swp\n*.swo\n\n"
+
+	// Add language-specific gitignore content
+	if g.Config.Language == model.GoLang {
+		content += `# Go specific ignores
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
@@ -101,17 +109,21 @@ vendor/
 # Build artifacts
 dist/
 bin/
-
-# IDE specific files
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS specific files
-.DS_Store
-Thumbs.db
 `
+	} else {
+		// Generic ignores for shell/script projects
+		content += `# Build artifacts
+dist/
+bin/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*~
+`
+	}
 
 	return os.WriteFile(".gitignore", []byte(content), 0644)
 }

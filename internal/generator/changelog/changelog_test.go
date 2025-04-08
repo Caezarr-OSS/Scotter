@@ -52,10 +52,10 @@ func TestGenerateChangelog(t *testing.T) {
 	// Create a config with changelog enabled
 	cfg := &model.Config{
 		ProjectName: "testproject",
-		Features: model.Features{
-			GitHub: model.GitHubFeatures{
-				GenerateChangelog: true,
-			},
+		Language: model.GoLang,
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+			SelectedFeatures: []string{"changelog"},
 		},
 	}
 	
@@ -120,10 +120,10 @@ func TestGenerateCommitlintConfig(t *testing.T) {
 	// Create a config with commitlint enabled
 	cfg := &model.Config{
 		ProjectName: "testproject",
-		Features: model.Features{
-			GitHub: model.GitHubFeatures{
-				UseCommitLint: true,
-			},
+		Language: model.GoLang,
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+			SelectedFeatures: []string{"commit-lint"},
 		},
 	}
 	
@@ -192,10 +192,10 @@ func TestGenerateCommitMsgHook(t *testing.T) {
 	// Create a config with commitlint enabled
 	cfg := &model.Config{
 		ProjectName: "testproject",
-		Features: model.Features{
-			GitHub: model.GitHubFeatures{
-				UseCommitLint: true,
-			},
+		Language: model.GoLang,
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+			SelectedFeatures: []string{"commit-lint"},
 		},
 	}
 	
@@ -269,11 +269,10 @@ func TestGenerateWithBothDisabled(t *testing.T) {
 	// Create a config with both features disabled
 	cfg := &model.Config{
 		ProjectName: "testproject",
-		Features: model.Features{
-			GitHub: model.GitHubFeatures{
-				GenerateChangelog: false,
-				UseCommitLint:     false,
-			},
+		Language: model.GoLang,
+		Pipeline: model.PipelineConfig{
+			UseGitHubActions: true,
+			SelectedFeatures: []string{}, // No features selected
 		},
 	}
 	
