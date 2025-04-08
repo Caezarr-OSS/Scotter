@@ -24,8 +24,7 @@ go.work.sum
 # env file
 .env
 
-# Generated changelog
-CHANGELOG.md
+# Le CHANGELOG.md est maintenant géré par le workflow GitHub Action lors des releases
 
 # Test generated directories
 internal/generator/github/.github/
