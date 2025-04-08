@@ -118,6 +118,7 @@ Scotter uses the same tools it provides to its users:
 - [Multi-Language Support](docs/MULTI_LANGUAGE_SUPPORT.md)
 - [Container Support](docs/CONTAINER_SUPPORT.md)
 - [Container Best Practices](docs/CONTAINER_BEST_PRACTICES.md)
+- [Changelog Support](docs/CHANGELOG_SUPPORT.md)
 
 ### Developer Documentation
 - [Developer Guide](docs/DEVELOPER_GUIDE.md)

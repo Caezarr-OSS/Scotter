@@ -192,7 +192,40 @@ task changelog
 
 This will parse your conventional commits and update CHANGELOG.md.
 
-### Container Support
+### Changelog Generation
+
+When you select the Changelog feature during project initialization, Scotter sets up automatic changelog generation based on conventional commit messages.
+
+### How It Works
+
+1. Scotter adds a GitHub Actions workflow (`.github/workflows/changelog.yml`) that automatically generates and updates the CHANGELOG.md file
+2. The workflow triggers on pushes to the main/master branch and can also be manually triggered
+3. It uses `conventional-changelog-cli` to parse commit messages and generate a structured changelog
+4. Changes are automatically committed and pushed back to the repository
+
+### Requirements
+
+- Your project must use conventional commit messages (enforced by the Commit Lint feature)
+- Node.js must be available in your CI environment (automatically installed in GitHub Actions)
+
+### Using the Changelog Feature
+
+Once set up, the changelog will be automatically updated whenever you push commits to the main branch. The generated CHANGELOG.md follows the [Keep a Changelog](https://keepachangelog.com/) format and groups changes by type:
+
+- Features (feat)
+- Bug fixes (fix)
+- Documentation changes (docs)
+- And more...
+
+You can also manually generate the changelog locally using the task provided in the Taskfile:
+
+```bash
+task changelog
+```
+
+This requires Node.js and will install the necessary dependencies if they're not already present.
+
+## Container Support
 
 When you select the container feature, you'll be asked which container file format you prefer:
 
