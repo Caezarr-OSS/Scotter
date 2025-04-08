@@ -26,3 +26,7 @@ go.work.sum
 
 # Generated changelog
 CHANGELOG.md
+
+# Test generated directories
+internal/generator/github/.github/
+templates/github/github/
