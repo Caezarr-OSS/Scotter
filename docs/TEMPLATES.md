@@ -1,37 +1,66 @@
 # Scotter Templates Documentation
 
-This document explains how to use, customize, and extend the templates used by Scotter to generate Go projects.
+> **Note**: This document is primarily for developers who want to contribute to the Scotter project itself. End users of Scotter do not need to modify templates or understand the internal template system.
+
+This document explains how to use, customize, and extend the templates used by Scotter to generate projects in multiple programming languages.
 
 ## Template Overview
 
-Scotter uses Go's built-in `text/template` package to generate project files from templates. These templates are located in the `internal/templates` directory and are organized as follows:
+Scotter uses Go's built-in `text/template` package to generate project files from templates. These templates are located in the `internal/templates` directory and are organized by language and feature:
 
 ```
 internal/templates/
-├── default_main.go.tmpl     # Template for minimal project main.go
+├── common/                  # Language-agnostic templates
+│   ├── readme.md.tmpl       # README template
+│   └── taskfile.yml.tmpl    # Taskfile template
 ├── github/                  # GitHub-related templates
 │   ├── ci.yml.tmpl          # GitHub Actions CI workflow
 │   ├── commitlint.yml.tmpl  # Commitlint workflow 
 │   └── release.yml.tmpl     # Release workflow using GoReleaser
-├── readme.md.tmpl           # README template
-└── taskfile.yml.tmpl        # Taskfile template
+├── go/                      # Go-specific templates
+│   ├── default_main.go.tmpl # Template for minimal project main.go
+│   ├── library/             # Library-specific templates
+│   ├── cli/                 # CLI-specific templates
+│   └── api/                 # API-specific templates
+└── shell/                   # Shell-specific templates
+    ├── script.sh.tmpl       # Unix shell script template
+    └── script.ps1.tmpl      # PowerShell script template
 ```
 
 ## Template Variables
 
 Templates can access project configuration values using the following variables:
 
+### Common Variables
+
 | Variable | Description | Example |
-|----------|-------------|---------|
+|----------|-------------|----------|
 | `.ProjectName` | Name of the project | `myproject` |
-| `.ProjectType` | Type of the project | `model.CLIType` |
-| `.ModulePath` | Go module path | `github.com/username/myproject` |
-| `.Features.UseTaskFile` | Whether to include Taskfile | `true` |
-| `.Features.GitHub.UseWorkflows` | Whether to include GitHub workflows | `true` |
-| `.Features.GitHub.UseCommitLint` | Whether to use commitlint | `true` |
-| `.Features.GitHub.UseReleaseWorkflow` | Whether to use release workflow | `true` |
-| `.Features.GitHub.UseDependabot` | Whether to use Dependabot | `true` |
-| `.Features.GitHub.GenerateChangelog` | Whether to generate CHANGELOG | `true` |
+| `.Language` | Programming language | `model.GoLang` |
+| `.Directories` | Directories to create | `["cmd", "internal", "pkg"]` |
+
+### Language-Specific Variables
+
+#### Go Variables
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `.Go.ProjectType` | Type of Go project | `model.CLIGoType` |
+| `.Go.ModulePath` | Go module path | `github.com/username/myproject` |
+
+#### Python Variables
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `.Python.ProjectType` | Type of Python project | `model.LibraryPythonType` |
+| `.Python.PackageName` | Python package name | `myproject` |
+
+### Pipeline Configuration
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `.Pipeline.UseGitHubActions` | Whether to use GitHub Actions | `true` |
+| `.Pipeline.SelectedFeatures` | List of enabled pipeline features | `["ci", "commit-lint", "changelog"]` |
 
 ## Customizing Existing Templates
 
@@ -54,14 +83,15 @@ The `readme.md.tmpl` template is used to generate the project's README. Here's h
 
 - Feature 1
 - Feature 2
-{{if .Features.UseTaskFile}}
+{{if contains .Pipeline.SelectedFeatures "taskfile"}}
 - Includes task automation with Taskfile
 {{end}}
 
+{{if eq .Language "model.GoLang"}}
 ## Installation
 
 ```bash
-go install {{.ModulePath}}@latest
+go install {{.Go.ModulePath}}@latest
 ```
 
 ## Usage
@@ -69,36 +99,87 @@ go install {{.ModulePath}}@latest
 ```bash
 {{.ProjectName}} --help
 ```
+{{end}}
 ```
 
-This example shows how to use conditional statements (`{{if .Features.UseTaskFile}}`) to include content based on project configuration.
+This example shows how to use conditional statements based on language and selected features. The `contains` function checks if a feature is in the list of selected features.
 
 ## Adding New Templates
 
 To add a new template:
 
-1. Create a new `.tmpl` file in the appropriate directory
+1. Create a new `.tmpl` file in the appropriate directory (language-specific or common)
 2. Update the corresponding generator to use your new template
 3. Modify the configuration model if needed to support new options
 
-### Example: Adding a Docker template
+### Example: Adding Support for a New Language
 
-1. Create a new file `internal/templates/docker/Dockerfile.tmpl`:
+1. Update the `model/config.go` file to add a new language type:
+
+```go
+const (
+	GoLang LanguageType = "go"
+	NoLang LanguageType = "none"
+	PythonLang LanguageType = "python"  // New language
+)
+```
+
+2. Create a directory for the new language's templates:
 
 ```
+mkdir -p internal/templates/python
+```
+
+3. Add language-specific templates, for example `internal/templates/python/main.py.tmpl`:
+
+```python
+#!/usr/bin/env python3
+
+def main():
+    print("Hello from {{.ProjectName}}!")
+
+if __name__ == "__main__":
+    main()
+```
+
+4. Create a new generator in `internal/generator/python/python.go`
+
+5. Update the prompt system to allow selecting the new language
+
+### Example: Adding a New Pipeline Feature
+
+1. Update the `model/config.go` file to add the new feature to the pipeline features:
+
+```go
+var AvailablePipelineFeatures = []PipelineFeature{
+	// Existing features
+	{Name: "ci", Description: "Continuous Integration", Dependencies: nil},
+	{Name: "commit-lint", Description: "Conventional Commits validation", Dependencies: nil},
+	// New feature
+	{Name: "docker", Description: "Docker container support", Dependencies: nil},
+}
+```
+
+2. Create templates for the new feature, for example `internal/templates/docker/Dockerfile.tmpl`:
+
+```dockerfile
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 COPY . .
+{{if eq .Language "model.GoLang"}}
 RUN go mod download
 RUN go build -o /bin/app ./cmd/{{.ProjectName}}
+{{end}}
 
 FROM alpine:latest
+{{if eq .Language "model.GoLang"}}
 COPY --from=builder /bin/app /bin/app
 ENTRYPOINT ["/bin/app"]
+{{end}}
 ```
 
-2. Create a new generator in `internal/generator/docker/docker.go`
+3. Create a new generator in `internal/generator/docker/docker.go`
 3. Update the initializer to use the new generator
 
 ## Cross-Platform Considerations

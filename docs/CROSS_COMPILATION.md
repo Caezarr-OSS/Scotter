@@ -1,10 +1,10 @@
 # Cross-Platform Support in Scotter
 
-This document explains how Scotter supports cross-platform development and deployment for both Unix and Windows environments.
+This document explains how Scotter supports cross-platform development and deployment for both Unix and Windows environments across multiple programming languages.
 
 ## Cross-Platform Project Generation
 
-Scotter is designed to generate projects that work seamlessly across different operating systems:
+Scotter is designed to generate projects that work seamlessly across different operating systems, regardless of the programming language chosen:
 
 1. **Path Handling**
    - Uses `filepath.Join()` instead of string concatenation for paths
@@ -21,9 +21,11 @@ Scotter is designed to generate projects that work seamlessly across different o
    - Ensures executable permissions are set properly on Unix systems
    - Provides PowerShell alternatives where appropriate for Windows
 
-## Cross-Compilation with GoReleaser
+## Cross-Compilation Support by Language
 
-Scotter sets up your project with GoReleaser for easy cross-compilation:
+### Go Projects
+
+For Go projects, Scotter sets up cross-compilation using GoReleaser:
 
 1. **GoReleaser Configuration**
    - The generated `.github/workflows/release.yml` uses GoReleaser
@@ -33,7 +35,7 @@ Scotter sets up your project with GoReleaser for easy cross-compilation:
    - The generated Taskfile includes tasks for cross-compilation
    - You can easily build for different platforms with a single command
 
-### Example: Cross-Compiling with Taskfile
+#### Example: Cross-Compiling Go Projects with Taskfile
 
 ```bash
 # Build for all supported platforms
@@ -45,9 +47,34 @@ task build:linux
 task build:darwin
 ```
 
+### Shell Projects
+
+For shell projects, Scotter ensures cross-platform compatibility through:
+
+1. **Shell Compatibility**
+   - Generates POSIX-compliant shell scripts when possible
+   - Provides separate PowerShell scripts for Windows environments
+   - Includes compatibility checks in scripts
+
+2. **Line Ending Management**
+   - Ensures proper line endings for the target platform
+   - Adds shebang lines for Unix systems
+   - Includes execution instructions for Windows
+
+#### Example: Cross-Platform Shell Scripts
+
+```bash
+# Unix version (script.sh)
+#!/bin/sh
+echo "Hello World"
+
+# Windows version (script.ps1)
+Write-Host "Hello World"
+```
+
 ## Setting Up Cross-Compilation for Your Project
 
-Scotter provides templates for cross-compilation. Here's how to set it up:
+Scotter provides templates for cross-compilation based on your selected language. Here's how to set it up:
 
 1. **Configure GoReleaser**
    

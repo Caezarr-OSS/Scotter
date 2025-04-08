@@ -38,13 +38,25 @@ The `type` field must be one of the following:
 
 ## Scope
 
-The `scope` field is optional and should be a noun describing the section of the codebase affected by the change:
+The `scope` field is required and should be a noun describing the section of the codebase affected by the change. Valid scopes include:
+
+| Scope | Description |
+|-------|-------------|
+| `core` | Core functionality and infrastructure |
+| `model` | Data models and configuration |
+| `prompt` | User interaction and prompts |
+| `generator` | Code and file generation |
+| `config` | Configuration handling |
+| `init` | Initialization process |
+| `cli` | Command-line interface |
+| `docs` | Documentation |
+| `deps` | Dependencies |
 
 Examples:
-- `feat(generator)`
-- `fix(prompt)`
-- `docs(README)`
-- `refactor(model)`
+- `feat(generator): add support for Python templates`
+- `fix(prompt): correct language selection options`
+- `docs(README): update multi-language documentation`
+- `refactor(model): improve config validation`
 
 ## Subject
 
