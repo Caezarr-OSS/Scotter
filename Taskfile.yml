@@ -73,6 +73,10 @@ tasks:
           npm install -g conventional-changelog-cli
         fi
       - conventional-changelog -p angular -i CHANGELOG.md -s
+
+  release:
+    desc: Build release binaries for all supported platforms
+    deps: [clean, test]
     cmds:
       # Linux
       - echo "Building for Linux..."
