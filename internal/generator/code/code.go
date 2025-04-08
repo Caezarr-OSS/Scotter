@@ -55,6 +55,8 @@ func (g *Generator) Generate() error {
 		return g.generateCLIProject()
 	case model.APIGoType:
 		return g.generateAPIProject()
+	case model.CompleteGoType:
+		return g.generateCompleteProject()
 	default:
 		return fmt.Errorf("unknown project type: %s", g.Config.Go.ProjectType)
 	}

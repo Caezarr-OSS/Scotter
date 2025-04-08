@@ -69,6 +69,11 @@ func (g *Generator) Generate() error {
 		if err := g.GenerateCommitLintWorkflow(); err != nil {
 			return err
 		}
+		
+		// Generate commitlint configuration file
+		if err := g.generateCommitlintConfig(); err != nil {
+			return fmt.Errorf("failed to generate commitlint config: %w", err)
+		}
 	}
 
 	// Create release workflow if enabled
@@ -195,9 +200,8 @@ func (g *Generator) generateWorkflow(workflowName string) error {
 	
 	// Nous n'avons plus besoin de convertir les chemins en chemins absolus
 	
-	// Vérifier si le fichier existe
-	_, err := os.Stat(templatePath)
-	// Vérification de l'existence du fichier effectuée
+	// Nous allons directement essayer de parser le template
+	// Si le fichier n'existe pas, ParseFiles renverra une erreur appropriée
 	
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {

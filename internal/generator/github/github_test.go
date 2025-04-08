@@ -22,7 +22,12 @@ func TestGenerateWorkflows(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir) // Revenir au répertoire d'origine à la fin du test
+	defer func() {
+		err := os.Chdir(originalDir) // Revenir au répertoire d'origine à la fin du test
+		if err != nil {
+			t.Logf("Failed to change back to original directory: %v", err)
+		}
+	}()
 	
 	// Changer le répertoire de travail vers le répertoire temporaire
 	if err := os.Chdir(tempDir); err != nil {

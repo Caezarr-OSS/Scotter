@@ -26,6 +26,8 @@ const (
 	CLIGoType GoProjectType = "cli"
 	// APIGoType is for HTTP API/service applications
 	APIGoType GoProjectType = "api"
+	// CompleteGoType is for a complete project with all features
+	CompleteGoType GoProjectType = "complete"
 )
 
 // String returns the string representation of GoProjectType
@@ -39,6 +41,8 @@ func (pt GoProjectType) String() string {
 		return "CLI"
 	case APIGoType:
 		return "API"
+	case CompleteGoType:
+		return "Complete"
 	default:
 		return "Unknown"
 	}

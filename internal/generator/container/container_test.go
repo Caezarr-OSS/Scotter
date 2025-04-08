@@ -41,7 +41,12 @@ CMD ["./{{.ProjectName}}"]`
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalWd)
+	defer func() {
+		err := os.Chdir(originalWd)
+		if err != nil {
+			t.Logf("Failed to change back to original directory: %v", err)
+		}
+	}()
 	
 	err = os.Chdir(tempDir)
 	if err != nil {
