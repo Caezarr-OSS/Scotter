@@ -1,0 +1,9 @@
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copy all files
+COPY . /app/
+
+# Set the entry point to a shell
+CMD ["/bin/sh"]
