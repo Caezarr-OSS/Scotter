@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/Caezarr-OSS/Scotter/internal/model"
@@ -61,59 +62,195 @@ func (p *ProjectPrompt) AskBool(question string, defaultValue bool) bool {
 	}
 }
 
-// AskProjectType asks the user for the project type
-func (p *ProjectPrompt) AskProjectType() model.ProjectType {
-	fmt.Println("\nProject types:")
-	fmt.Println("1. Default - A minimal structure for simple projects or scripting")
-	fmt.Println("2. Library - For reusable Go packages")
-	fmt.Println("3. CLI - For command-line applications")
-	fmt.Println("4. API - For HTTP API/service applications")
-	fmt.Println("5. Complete - All features enabled")
+// AskSelect asks the user to select an option from a list
+func (p *ProjectPrompt) AskSelect(question string, options []string, defaultIndex int) int {
+	fmt.Println("\n" + question + ":")
+	for i, option := range options {
+		fmt.Printf("%d. %s\n", i+1, option)
+	}
+
+	defaultStr := ""
+	if defaultIndex >= 0 && defaultIndex < len(options) {
+		defaultStr = strconv.Itoa(defaultIndex + 1)
+	}
 
 	for {
-		answer := p.AskString("Select a project type (1-5)", "1")
-
-		switch answer {
-		case "1":
-			return model.DefaultType
-		case "2":
-			return model.LibraryType
-		case "3":
-			return model.CLIType
-		case "4":
-			return model.APIType
-		case "5":
-			return model.CompleteType
-		default:
-			fmt.Println("Please enter a number between 1 and 5")
+		answer := p.AskString(fmt.Sprintf("Select an option (1-%d)", len(options)), defaultStr)
+		if answer == "" && defaultStr != "" {
+			return defaultIndex
 		}
+
+		index, err := strconv.Atoi(answer)
+		if err == nil && index >= 1 && index <= len(options) {
+			return index - 1
+		}
+
+		fmt.Printf("Please enter a number between 1 and %d\n", len(options))
+	}
+}
+
+// AskMultiSelect asks the user to select multiple options from a list
+func (p *ProjectPrompt) AskMultiSelect(question string, options []model.PipelineFeature) []string {
+	// Display options
+	fmt.Println("\n" + question + ":")
+	for i, option := range options {
+		fmt.Printf("%d. %s - %s\n", i+1, option.Name, option.Description)
+	}
+
+	// Get user input
+	selectedIDs := []string{}
+	for {
+		answer := p.AskString("Enter numbers separated by commas (e.g., 1,3,4) or 'all' for all features", "all")
+		answer = strings.ToLower(answer)
+
+		// Handle 'all' option
+		if answer == "all" {
+			for _, option := range options {
+				selectedIDs = append(selectedIDs, option.ID)
+			}
+			break
+		}
+
+		// Parse comma-separated list
+		valid := true
+		parts := strings.Split(answer, ",")
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed == "" {
+				continue
+			}
+
+			index, err := strconv.Atoi(trimmed)
+			if err != nil || index < 1 || index > len(options) {
+				fmt.Printf("Invalid option: %s. Please enter numbers between 1 and %d\n", trimmed, len(options))
+				valid = false
+				break
+			}
+
+			selectedIDs = append(selectedIDs, options[index-1].ID)
+		}
+
+		if valid {
+			break
+		}
+	}
+
+	// Resolve dependencies
+	return model.ResolveFeatureDependencies(selectedIDs)
+}
+
+// AskLanguage asks the user for the project language
+func (p *ProjectPrompt) AskLanguage() model.LanguageType {
+	options := []string{
+		"Go - For Go projects",
+		"None/Shell - For script projects or multi-language projects",
+	}
+
+	index := p.AskSelect("Select project language", options, 0)
+	if index == 0 {
+		return model.GoLang
+	}
+	return model.NoLang
+}
+
+// AskGoProjectType asks the user for the Go project type
+func (p *ProjectPrompt) AskGoProjectType() model.GoProjectType {
+	options := []string{
+		"Default - A minimal structure for simple projects",
+		"Library - For reusable Go packages",
+		"CLI - For command-line applications",
+		"API - For HTTP API/service applications",
+	}
+
+	index := p.AskSelect("Select Go project type", options, 0)
+	switch index {
+	case 0:
+		return model.DefaultGoType
+	case 1:
+		return model.LibraryGoType
+	case 2:
+		return model.CLIGoType
+	case 3:
+		return model.APIGoType
+	default:
+		return model.DefaultGoType
+	}
+}
+
+// AskContainerFileFormat asks the user for their preferred container file format
+func (p *ProjectPrompt) AskContainerFileFormat() model.ContainerFileFormat {
+	options := []string{
+		"Dockerfile (Docker standard)",
+		"Containerfile (Podman/OCI standard)",
+	}
+
+	index := p.AskSelect("Select your preferred container file format", options, 0)
+	switch index {
+	case 0:
+		return model.DockerfileFormat
+	case 1:
+		return model.ContainerfileFormat
+	default:
+		return model.DockerfileFormat
 	}
 }
 
 // CollectConfig prompts the user for project configuration
 func (p *ProjectPrompt) CollectConfig() *model.Config {
-	cfg := model.NewDefaultConfig()
+	cfg := model.NewConfig()
 
 	// Basic project info
 	fmt.Println("\n=== Basic Project Configuration ===")
 	cfg.ProjectName = p.AskString("Project name", cfg.ProjectName)
-	cfg.ModulePath = p.AskString("Go module path (e.g., github.com/username/project)", fmt.Sprintf("github.com/username/%s", cfg.ProjectName))
-	cfg.ProjectType = p.AskProjectType()
-
-	// GitHub configuration
-	fmt.Println("\n=== GitHub Configuration ===")
-	cfg.Features.GitHub.UseWorkflows = p.AskBool("Include GitHub Actions workflows", true)
 	
-	if cfg.Features.GitHub.UseWorkflows {
-		cfg.Features.GitHub.UseCommitLint = p.AskBool("Include commit message validation", true)
-		cfg.Features.GitHub.UseReleaseWorkflow = p.AskBool("Include automatic release workflow", true)
-		cfg.Features.GitHub.UseDependabot = p.AskBool("Include Dependabot configuration", true)
+	// Language selection
+	cfg.Language = p.AskLanguage()
+
+	// Language-specific configuration
+	if cfg.Language == model.GoLang {
+		fmt.Println("\n=== Go Configuration ===")
+		cfg.Go.ModulePath = p.AskString("Go module path (e.g., github.com/username/project)", 
+			fmt.Sprintf("github.com/username/%s", cfg.ProjectName))
+		cfg.Go.ProjectType = p.AskGoProjectType()
+		cfg.Go.UseTaskFile = p.AskBool("Include Taskfile", true)
+		cfg.Go.UseMakeFile = p.AskBool("Include Makefile", false)
 	}
 
-	// Build tools
-	fmt.Println("\n=== Build Tools ===")
-	cfg.Features.UseTaskFile = p.AskBool("Include Taskfile", true)
-	cfg.Features.UseMakeFile = p.AskBool("Include Makefile", false)
+	// Pipeline configuration
+	fmt.Println("\n=== Pipeline Configuration ===")
+	cfg.Pipeline.UseGitHubActions = p.AskBool("Configure GitHub Actions", true)
+	
+	if cfg.Pipeline.UseGitHubActions {
+		// Display available pipeline features and let user select
+		fmt.Println("\nAvailable pipeline features:")
+		features := model.AvailablePipelineFeatures()
+		selectedFeatures := p.AskMultiSelect("Select pipeline features", features)
+		
+		// Store selected features
+		cfg.Pipeline.SelectedFeatures = selectedFeatures
+		
+		// Show selected features with dependencies resolved
+		fmt.Println("\nSelected features (including dependencies):")
+		featureMap := make(map[string]model.PipelineFeature)
+		for _, f := range features {
+			featureMap[f.ID] = f
+		}
+		
+		for _, id := range cfg.Pipeline.SelectedFeatures {
+			if feature, ok := featureMap[id]; ok {
+				fmt.Printf("- %s\n", feature.Name)
+			}
+		}
+		
+		// If container feature is selected, ask for container file format
+		for _, id := range cfg.Pipeline.SelectedFeatures {
+			if id == "container" {
+				fmt.Println("\n=== Container Configuration ===")
+				cfg.Pipeline.ContainerFormat = p.AskContainerFileFormat()
+				break
+			}
+		}
+	}
 
 	return cfg
 }

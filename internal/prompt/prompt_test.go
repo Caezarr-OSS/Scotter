@@ -111,42 +111,37 @@ func TestAskString(t *testing.T) {
 	}
 }
 
-// TestAskProjectType tests the AskProjectType method
-func TestAskProjectType(t *testing.T) {
+// TestAskGoProjectType tests the AskGoProjectType method
+func TestAskGoProjectType(t *testing.T) {
 	tests := []struct {
 		name           string
 		inputs         []string
-		expectedResult model.ProjectType
+		expectedResult model.GoProjectType
 	}{
 		{
 			name:           "default type",
 			inputs:         []string{"1"},
-			expectedResult: model.DefaultType,
+			expectedResult: model.DefaultGoType,
 		},
 		{
 			name:           "library type",
 			inputs:         []string{"2"},
-			expectedResult: model.LibraryType,
+			expectedResult: model.LibraryGoType,
 		},
 		{
 			name:           "cli type",
 			inputs:         []string{"3"},
-			expectedResult: model.CLIType,
+			expectedResult: model.CLIGoType,
 		},
 		{
 			name:           "api type",
 			inputs:         []string{"4"},
-			expectedResult: model.APIType,
-		},
-		{
-			name:           "complete type",
-			inputs:         []string{"5"},
-			expectedResult: model.CompleteType,
+			expectedResult: model.APIGoType,
 		},
 		{
 			name:           "invalid then valid",
 			inputs:         []string{"10", "1"},
-			expectedResult: model.DefaultType,
+			expectedResult: model.DefaultGoType,
 		},
 	}
 
@@ -161,11 +156,63 @@ func TestAskProjectType(t *testing.T) {
 			p := NewProjectPrompt()
 
 			// Run the function
-			result := p.AskProjectType()
+			result := p.AskGoProjectType()
 
 			// Check result
 			if result != tt.expectedResult {
 				t.Errorf("expected %v, got %v", tt.expectedResult, result)
+			}
+		})
+	}
+}
+
+func TestAskContainerFileFormat(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected model.ContainerFileFormat
+	}{
+		{
+			name:     "Dockerfile format",
+			input:    "1",
+			expected: model.DockerfileFormat,
+		},
+		{
+			name:     "Containerfile format",
+			input:    "2",
+			expected: model.ContainerfileFormat,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup mock stdin
+			inputs := []string{tt.input}
+			r := mockStdin(t, inputs)
+			
+			// Save and restore original stdin
+			oldStdin := os.Stdin
+			os.Stdin = r
+			defer func() {
+				os.Stdin = oldStdin
+			}()
+			
+			// Create the prompt and capture output
+			p := NewProjectPrompt()
+			var result model.ContainerFileFormat
+			
+			output := captureOutput(func() {
+				result = p.AskContainerFileFormat()
+			})
+			
+			// Check the result
+			if result != tt.expected {
+				t.Errorf("Expected %v, got %v", tt.expected, result)
+			}
+			
+			// Check that the output contains the expected prompt
+			if !strings.Contains(output, "Select your preferred container file format") {
+				t.Errorf("Expected output to contain prompt, got: %s", output)
 			}
 		})
 	}
