@@ -49,6 +49,30 @@ tasks:
   release:
     desc: Build release binaries for all supported platforms
     deps: [clean, test]
+
+  commitlint:
+    desc: Check commit messages against conventional commits
+    cmds:
+      - |
+        if ! command -v npx &> /dev/null; then
+          echo "Error: npx not found. Please install Node.js"
+          exit 1
+        fi
+      - npx commitlint --from HEAD~{{.COMMITS_TO_CHECK:=1}} --to HEAD
+
+  changelog:
+    desc: Generate or update CHANGELOG.md
+    cmds:
+      - |
+        if ! command -v npx &> /dev/null; then
+          echo "Error: npx not found. Please install Node.js"
+          exit 1
+        fi
+      - |
+        if ! command -v conventional-changelog &> /dev/null; then
+          npm install -g conventional-changelog-cli
+        fi
+      - conventional-changelog -p angular -i CHANGELOG.md -s
     cmds:
       # Linux
       - echo "Building for Linux..."
