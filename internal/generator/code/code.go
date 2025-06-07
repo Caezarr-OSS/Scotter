@@ -166,6 +166,12 @@ func (c *Client) Hello(name string) string {
 	}
 	return "Hello, " + name + "!"
 }
+
+// ExampleFunction is an example function that can be called directly
+// without creating a client instance
+func ExampleFunction(input string) string {
+	return "Example output for: " + input
+}
 `, g.Config.ProjectName, g.Config.ProjectName)
 
 	if err := os.WriteFile(filepath.Join(pkgDir, fmt.Sprintf("%s.go", g.Config.ProjectName)), []byte(content), 0644); err != nil {
@@ -198,10 +204,82 @@ func TestHello(t *testing.T) {
 		}
 	})
 }
+
+func TestExampleFunction(t *testing.T) {
+	got := ExampleFunction("test")
+	want := "Example output for: test"
+	if got != want {
+		t.Errorf("ExampleFunction() = %%q, want %%q", got, want)
+	}
+}
 `, g.Config.ProjectName)
 
 	if err := os.WriteFile(filepath.Join(pkgDir, fmt.Sprintf("%s_test.go", g.Config.ProjectName)), []byte(testContent), 0644); err != nil {
 		return fmt.Errorf("failed to write test file: %w", err)
+	}
+	
+	// Create API documentation
+	docDir := "docs"
+	if err := os.MkdirAll(docDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", docDir, err)
+	}
+	
+	// Generate API.md from template
+	apiTmplPath := filepath.Join(g.TemplateDir, "api.md.tmpl")
+	apiTmpl, err := template.ParseFiles(apiTmplPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse API template: %w", err)
+	}
+	
+	apiFile, err := os.Create(filepath.Join(docDir, "API.md"))
+	if err != nil {
+		return fmt.Errorf("failed to create API documentation file: %w", err)
+	}
+	defer apiFile.Close()
+	
+	data := struct {
+		ProjectName string
+		ModulePath  string
+	}{
+		ProjectName: g.Config.ProjectName,
+		ModulePath:  g.Config.Go.ModulePath,
+	}
+	
+	if err := apiTmpl.Execute(apiFile, data); err != nil {
+		return fmt.Errorf("failed to execute API template: %w", err)
+	}
+	
+	// Create examples directory and example file
+	examplesDir := "examples"
+	if err := os.MkdirAll(examplesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", examplesDir, err)
+	}
+	
+	// Generate example.go from template
+	exampleTmplPath := filepath.Join(g.TemplateDir, "example.go.tmpl")
+	exampleTmpl, err := template.ParseFiles(exampleTmplPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse example template: %w", err)
+	}
+	
+	exampleFile, err := os.Create(filepath.Join(examplesDir, "basic_usage.go"))
+	if err != nil {
+		return fmt.Errorf("failed to create example file: %w", err)
+	}
+	defer exampleFile.Close()
+	
+	if err := exampleTmpl.Execute(exampleFile, data); err != nil {
+		return fmt.Errorf("failed to execute example template: %w", err)
+	}
+	
+	// Create a README.md in the examples directory
+	title := "# " + g.Config.ProjectName + " Examples"
+	description := "This directory contains examples showing how to use the " + g.Config.ProjectName + " library."
+	usage := "## Running examples\n\nTo run an example:\n\n```bash\ngo run examples/basic_usage.go\n```"
+	exampleReadmeContent := title + "\n\n" + description + "\n\n" + usage
+	
+	if err := os.WriteFile(filepath.Join(examplesDir, "README.md"), []byte(exampleReadmeContent), 0644); err != nil {
+		return fmt.Errorf("failed to write examples README file: %w", err)
 	}
 	
 	return nil
