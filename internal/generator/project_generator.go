@@ -95,7 +95,7 @@ func (g *ProjectGenerator) generateLanguageSpecificFiles() error {
 // generateGoFiles génère les fichiers spécifiques à Go
 func (g *ProjectGenerator) generateGoFiles() error {
 	// Créer un TemplateManager spécifique à Go
-	templateMgr := NewTemplateManager(g.Config, g.TemplateDir, LangGo)
+	templateMgr := common.NewTemplateManager(g.Config, g.TemplateDir, common.TemplateLanguage("go"))
 	
 	// Générer go.mod
 	if err := templateMgr.GenerateFileFromTemplate("go.mod", "go.mod", []string{".tmpl"}); err != nil {
