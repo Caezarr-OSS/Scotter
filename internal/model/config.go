@@ -70,6 +70,8 @@ type GoConfig struct {
 	UseTaskFile bool
 	// UseMakeFile specifies whether to include a Makefile
 	UseMakeFile bool
+	// BuildTargets specifies the OS/architecture combinations to target
+	BuildTargets []BuildTarget
 }
 
 // ContainerFileFormat defines the format of container configuration files
@@ -160,16 +162,22 @@ func (cfg *Config) Validate() error {
 // NewConfig returns a new configuration with default values
 func NewConfig() *Config {
 	return &Config{
-		ProjectName: "",
+		ProjectName: "my-project",
 		Language:    GoLang,
 		Go: GoConfig{
 			ProjectType: DefaultGoType,
+			UseTaskFile: true,
+			BuildTargets: []BuildTarget{
+				{OS: "linux", Arch: "amd64"},
+				{OS: "darwin", Arch: "amd64"},
+			},
 		},
 		Pipeline: PipelineConfig{
-			UseGitHubActions: true,
-			SelectedFeatures: []string{},
+			UseGitHubActions:  true,
+			SelectedFeatures: []string{"ci"},
 			ContainerFormat:  DockerfileFormat,
 		},
+		Directories: []string{},
 	}
 }
 
