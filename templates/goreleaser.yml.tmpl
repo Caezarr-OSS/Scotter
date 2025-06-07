@@ -1,0 +1,59 @@
+project_name: {{ .ProjectName }}
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    main: ./cmd/{{ .ProjectName }}
+    ldflags:
+      - -s -w
+      - -X main.Version={{`{{.Version}}`}}
+      - -X main.CommitSHA={{`{{.Commit}}`}}
+      - -X main.BuildDate={{`{{.Date}}`}}
+    binary: {{ .ProjectName }}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{`{{ .ProjectName }}_`}}
+      {{`{{ .Version }}_`}}
+      {{`{{ .Os }}_`}}
+      {{`{{ .Arch }}`}}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - docs/*
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - Merge pull request
+      - Merge branch
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{`{{ incpatch .Version }}`}}-next"
+
+sboms:
+  - id: {{`{{ .ProjectName }}`}}-sbom
+    artifacts: binary
+    documents:
+      - "{{`{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"

@@ -29,9 +29,9 @@ func TestAllWorkflowTemplates(t *testing.T) {
 	// Copy template files from project templates directory if available
 	// This allows test to run both locally and in CI
 	tryTemplatePaths := []string{
-		"../../../internal/templates/github",
-		"../../internal/templates/github",
-		"internal/templates/github",
+		"../../../templates/github",
+		"../../templates/github",
+		"templates/github",
 	}
 	
 	templateFiles := []string{"ci.yml.tmpl", "commitlint.yml.tmpl", "changelog.yml.tmpl", "release.yml.tmpl"}

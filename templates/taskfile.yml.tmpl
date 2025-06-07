@@ -1,0 +1,70 @@
+version: '3'
+
+vars:
+  BINARY_NAME: {{.ProjectName}}
+  VERSION:
+    sh: git describe --tags --always --dirty
+  COMMIT:
+    sh: git rev-parse --short HEAD
+  DATE:
+    sh: date -u '+%Y-%m-%d_%H:%M:%S'
+  BUILD_DIR: dist
+  BUILD_FLAGS: -ldflags "-s -w -X main.Version={{`{{.VERSION}}`}} -X main.CommitSHA={{`{{.COMMIT}}`}} -X main.BuildDate={{`{{.DATE}}`}}"
+  MAIN_PACKAGE: ./{{if eq .Go.ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
+
+tasks:
+  build:
+    desc: Build for the current platform
+    cmds:
+      - mkdir -p {{`{{.BUILD_DIR}}`}}
+      - go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}} {{`{{.MAIN_PACKAGE}}`}}
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v ./...
+
+  lint:
+    desc: Run linters
+    cmds:
+      - go vet ./...
+      - |
+        if ! command -v golangci-lint &> /dev/null; then
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        fi
+      - golangci-lint run
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf {{`{{.BUILD_DIR}}`}}
+      - mkdir -p {{`{{.BUILD_DIR}}`}}
+
+  {{if ne .Go.ProjectType "library"}}
+  release-local:
+    desc: Build a release binary for your current OS only
+    cmds:
+      - task: build
+      - echo "Binary built for {{`{{OS}}`}}/{{`{{ARCH}}`}} -> {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}"
+    silent: false
+
+  # Individual build targets
+  {{range .Go.BuildTargets}}
+  build-{{.OS}}-{{.Arch}}:
+    desc: Build for {{.OS}}/{{.Arch}}
+    cmds:
+      - go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-{{.OS}}-{{.Arch}}{{if eq .OS "windows"}}.exe{{end}} {{`{{.MAIN_PACKAGE}}`}}
+    env:
+      GOOS: {{.OS}}
+      GOARCH: {{.Arch}}
+    generates:
+      - {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-{{.OS}}-{{.Arch}}{{if eq .OS "windows"}}.exe{{end}}
+  {{end}}
+
+  release:
+    desc: Build release binaries for all supported platforms
+    deps: [clean, test{{range .Go.BuildTargets}}, build-{{.OS}}-{{.Arch}}{{end}}]
+    cmds:
+      - echo "Release binaries created in {{`{{.BUILD_DIR}}`}}/"
+    silent: false
+  {{end}}

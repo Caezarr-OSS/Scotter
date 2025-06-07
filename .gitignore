@@ -1,6 +1,14 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go specific ignores
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -8,28 +16,15 @@
 *.so
 *.dylib
 
-# Binaires spécifiques du projet
-scotter
-Scotter
-
-# Test binary, built with `go test -c`
+# Test binary, built with 'go test -c'
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
-# Go workspace file
-go.work
-go.work.sum
-
-# env file
-.env
-
-# Le CHANGELOG.md est maintenant géré par le workflow GitHub Action lors des releases
-
-# Test generated directories
-internal/generator/github/.github/
-templates/github/github/
+# Build artifacts
+dist/
+bin/
