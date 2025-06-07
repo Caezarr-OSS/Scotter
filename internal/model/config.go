@@ -162,7 +162,7 @@ func (cfg *Config) Validate() error {
 // NewConfig returns a new configuration with default values
 func NewConfig() *Config {
 	return &Config{
-		ProjectName: "my-project",
+		ProjectName: "",
 		Language:    GoLang,
 		Go: GoConfig{
 			ProjectType: DefaultGoType,
