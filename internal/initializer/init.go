@@ -29,8 +29,20 @@ type PipelineFeatureGenerator struct {
 	Generate    func(cfg *model.Config, templatesDir string) error
 }
 
-// InitProject initializes a new project with the specified configuration
+// InitProject initializes a new project with interactive configuration
 func InitProject() error {
+	// Create a new prompter to ask for project configuration
+	prompter := prompt.NewProjectPrompt()
+	
+	// Get project configuration from user input
+	cfg := prompter.CollectConfig()
+
+	// Initialize the project with the collected config
+	return InitProjectWithConfig(cfg)
+}
+
+// InitProjectWithConfig initializes a new project with the provided configuration
+func InitProjectWithConfig(cfg *model.Config) error {
 	// Get the executable path to find templates
 	execPath, err := os.Executable()
 	if err != nil {
@@ -48,12 +60,6 @@ func InitProject() error {
 			return fmt.Errorf("templates directory not found: %s", templatesDir)
 		}
 	}
-
-	// Create a new prompter to ask for project configuration
-	prompter := prompt.NewProjectPrompt()
-	
-	// Get project configuration from user input
-	cfg := prompter.CollectConfig()
 	
 	// Detect OS and set appropriate line endings
 	if runtime.GOOS == "windows" {

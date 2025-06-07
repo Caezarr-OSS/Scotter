@@ -10,13 +10,14 @@ vars:
     sh: date -u '+%Y-%m-%d_%H:%M:%S'
   BUILD_DIR: dist
   BUILD_FLAGS: -ldflags "-s -w -X main.Version={{`{{.VERSION}}`}} -X main.CommitSHA={{`{{.COMMIT}}`}} -X main.BuildDate={{`{{.DATE}}`}}"
+  MAIN_PACKAGE: ./{{if eq .Go.ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
 
 tasks:
   build:
     desc: Build for the current platform
     cmds:
       - mkdir -p {{`{{.BUILD_DIR}}`}}
-      - go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}} ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
+      - go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}} {{`{{.MAIN_PACKAGE}}`}}
 
   test:
     desc: Run tests
@@ -39,7 +40,7 @@ tasks:
       - rm -rf {{`{{.BUILD_DIR}}`}}
       - mkdir -p {{`{{.BUILD_DIR}}`}}
 
-  {{if ne .ProjectType "library"}}
+  {{if ne .Go.ProjectType "library"}}
   release-local:
     desc: Build a release binary for your current OS only
     cmds:
@@ -47,24 +48,23 @@ tasks:
       - echo "Binary built for {{`{{OS}}`}}/{{`{{ARCH}}`}} -> {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}"
     silent: false
 
+  # Individual build targets
+  {{range .Go.BuildTargets}}
+  build-{{.OS}}-{{.Arch}}:
+    desc: Build for {{.OS}}/{{.Arch}}
+    cmds:
+      - go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-{{.OS}}-{{.Arch}}{{if eq .OS "windows"}}.exe{{end}} {{`{{.MAIN_PACKAGE}}`}}
+    env:
+      GOOS: {{.OS}}
+      GOARCH: {{.Arch}}
+    generates:
+      - {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-{{.OS}}-{{.Arch}}{{if eq .OS "windows"}}.exe{{end}}
+  {{end}}
+
   release:
     desc: Build release binaries for all supported platforms
-    deps: [clean, test]
+    deps: [clean, test{{range .Go.BuildTargets}}, build-{{.OS}}-{{.Arch}}{{end}}]
     cmds:
-      # Linux
-      - echo "Building for Linux..."
-      - GOOS=linux GOARCH=amd64 go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-linux-amd64 ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
-      - GOOS=linux GOARCH=arm64 go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-linux-arm64 ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
-      
-      # Windows
-      - echo "Building for Windows..."
-      - GOOS=windows GOARCH=amd64 go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-windows-amd64.exe ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
-      
-      # macOS
-      - echo "Building for macOS..."
-      - GOOS=darwin GOARCH=amd64 go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-darwin-amd64 ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
-      - GOOS=darwin GOARCH=arm64 go build {{`{{.BUILD_FLAGS}}`}} -o {{`{{.BUILD_DIR}}`}}/{{`{{.BINARY_NAME}}`}}-darwin-arm64 ./{{if eq .ProjectType "cli"}}cmd/{{.ProjectName}}{{else}}.{{end}}
-      
       - echo "Release binaries created in {{`{{.BUILD_DIR}}`}}/"
     silent: false
   {{end}}

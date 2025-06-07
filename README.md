@@ -31,18 +31,48 @@ go install github.com/Caezarr-OSS/Scotter/cmd/scotter@latest
 
 ## Usage
 
+### Project Initialization
+
 In a new Git repository, run:
 
 ```bash
 scotter init
 ```
 
-The tool will guide you through a series of questions to configure your project:
+You can use command line flags to specify all options without interactive prompts:
 
-1. Select your programming language
-2. Choose a project type based on the selected language
-3. Configure pipeline features (GitHub Actions, commit validation, etc.)
-4. Customize additional settings specific to your project
+```bash
+scotter init --name myproject --go-type cli --features ci,commit-lint,changelog,release \
+  --os linux,darwin --arch amd64,arm64
+```
+
+Key flags include:
+- `--name`: Project name
+- `--lang`: Programming language (go, none)
+- `--go-type`: Go project type (default, library, cli, api)
+- `--features`: Pipeline features (comma-separated)
+- `--os`: Target operating systems (comma-separated)
+- `--arch`: Target architectures (comma-separated)
+- `--no-interactive`: Disable interactive mode completely
+
+Use `scotter init --help` to see all available options.
+
+### Build Target Management
+
+Scotter allows adding, removing, and listing build targets for your Go project at any time:
+
+```bash
+# List current build targets
+scotter target list
+
+# Add a new build target
+scotter target add --os darwin --arch arm64
+
+# Remove a build target
+scotter target remove --os windows --arch amd64
+```
+
+This enables flexible cross-compilation configuration as your project evolves.
 
 ## Project Types
 
