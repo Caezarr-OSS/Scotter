@@ -63,6 +63,21 @@ The tool will guide you through a series of questions to configure your project:
 - **Documentation**: Generates and maintains documentation
 - **Container**: Creates container configuration files (Dockerfile or Containerfile)
 
+### GitHub Release Configuration
+
+To enable GitHub releases through workflows, you'll need to configure a personal access token with appropriate permissions:
+
+1. **Create a GitHub personal access token**:
+   - For classic tokens: Select the full `repo` scope
+   - For fine-grained tokens: Add repository permissions for `Contents: Read and write`, `Metadata: Read-only`, and `Actions: Read and write`
+
+2. **Add the token to your repository secrets**:
+   - Go to your repository → Settings → Secrets and variables → Actions
+   - Create a new repository secret named `RELEASE_TOKEN`
+   - Paste your personal access token as the value
+
+3. **The release workflow will automatically use this token** for creating releases, uploading assets, and publishing changelogs
+
 ## Development
 
 Scotter follows the GitFlow model with a `develop` branch for development and a `main` branch for releases.
