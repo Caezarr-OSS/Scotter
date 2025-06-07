@@ -33,18 +33,14 @@ go install github.com/Caezarr-OSS/Scotter/cmd/scotter@latest
 
 ### Project Initialization
 
-In a new Git repository, run:
-
-```bash
-scotter init
-```
-
-You can use command line flags to specify all options without interactive prompts:
+In a new Git repository, run with the required command line arguments:
 
 ```bash
 scotter init --name myproject --go-type cli --features ci,commit-lint,changelog,release \
   --os linux,darwin --arch amd64,arm64
 ```
+
+At minimum, you need to specify the project name with `--name`.
 
 Key flags include:
 - `--name`: Project name
@@ -53,7 +49,6 @@ Key flags include:
 - `--features`: Pipeline features (comma-separated)
 - `--os`: Target operating systems (comma-separated)
 - `--arch`: Target architectures (comma-separated)
-- `--no-interactive`: Disable interactive mode completely
 
 Use `scotter init --help` to see all available options.
 
@@ -151,6 +146,23 @@ Scotter uses the same tools it provides to its users:
 - **Conventional Commits**: All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification
 
 - **Automated Changelog**: The CHANGELOG.md is automatically generated from commit messages
+
+## Templates
+
+Scotter utilise un système de templates standardisé pour générer le contenu des projets. Tous les templates sont situés dans le répertoire `/templates` à la racine du projet.
+
+### Organisation des Templates
+
+- Templates racine : Templates généraux utilisés pour tous les types de projets
+- `/templates/github` : Templates spécifiques pour les workflows GitHub Actions
+- `/templates/container` : Templates pour la génération de fichiers Docker/Containerfile
+
+### Types de Templates
+
+- **Fichiers de projet** : Templates pour les fichiers sources (main.go, example.go, etc.)
+- **Documentation** : Templates pour README.md, API.md, etc.
+- **CI/CD** : Templates pour les workflows d'intégration et de déploiement continus
+- **Builds** : Templates pour les outils de build comme Taskfile, Makefile, etc.
 
 ## Documentation
 
