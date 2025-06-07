@@ -2,9 +2,12 @@ name: Release
 
 on:
   push:
-    tags:
+    tags:{{if eq .Go.ProjectType "library"}}
+      # Go libraries MUST use semantic versioning with v prefix
+      - 'v[0-9]+.[0-9]+.[0-9]+'{{else}}
+      # Other Go projects can use either convention
       - 'v*'
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'{{end}}
 
 jobs:
   goreleaser:

@@ -96,14 +96,15 @@ func (f ContainerFileFormat) String() string {
 	}
 }
 
+
+
 // PipelineConfig holds pipeline configuration
 type PipelineConfig struct {
-	// UseGitHubActions specifies whether to include GitHub Actions workflows
-	UseGitHubActions bool
-	// SelectedFeatures contains the IDs of selected pipeline features
-	SelectedFeatures []string
-	// ContainerFormat specifies the format for container configuration files
-	ContainerFormat ContainerFileFormat
+	CIType           CIType             `yaml:"ci_type" json:"ci_type"`
+	SelectedFeatures []string           `yaml:"selected_features" json:"selected_features"`
+	ContainerFormat ContainerFileFormat `yaml:"container_format" json:"container_format"`
+	// Obsolète - gardé pour la rétrocompatibilité
+	UseGitHubActions bool `yaml:"use_github_actions" json:"use_github_actions,omitempty"`
 }
 
 // Config holds the project configuration

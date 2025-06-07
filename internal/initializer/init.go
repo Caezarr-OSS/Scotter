@@ -7,9 +7,9 @@ import (
 	"runtime"
 
 	"github.com/Caezarr-OSS/Scotter/internal/generator/changelog"
+	"github.com/Caezarr-OSS/Scotter/internal/generator/ci"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/code"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/container"
-	"github.com/Caezarr-OSS/Scotter/internal/generator/github"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/structure"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/taskfile"
 	"github.com/Caezarr-OSS/Scotter/internal/model"
@@ -78,8 +78,8 @@ func InitProjectWithConfig(cfg *model.Config) error {
 		return err
 	}
 
-	// Step 2: Generate pipeline features if GitHub Actions is enabled
-	if cfg.Pipeline.UseGitHubActions {
+	// Step 2: Generate pipeline features if a CI system is configured
+	if cfg.Pipeline.CIType != "" || cfg.Pipeline.UseGitHubActions {
 		if err := generatePipelineFeatures(cfg, templatesDir); err != nil {
 			return err
 		}
@@ -140,38 +140,64 @@ func generateProjectStructure(cfg *model.Config, templatesDir string) error {
 
 // generatePipelineFeatures generates the selected pipeline features
 func generatePipelineFeatures(cfg *model.Config, templatesDir string) error {
-	// Create feature generators map
-	featureGenerators := map[string]func(*model.Config, string) error{
-		"commit-lint": generateCommitLint,
-		"changelog": generateChangelog,
-		"release": generateRelease,
-		"dependabot": generateDependabot,
-		"ci": generateCI,
-		"container": generateContainer,
+	// Create the CI Manager factory
+	ciFactory := ci.NewCIManagerFactory(templatesDir)
+	
+	// Create the appropriate CI manager based on the config
+	ciManager, err := ciFactory.CreateManager(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create CI manager: %w", err)
 	}
-
-	// Create GitHub workflows directory
-	if err := os.MkdirAll(".github/workflows", 0755); err != nil {
-		return fmt.Errorf("failed to create GitHub workflows directory: %w", err)
+	
+	// If CI is disabled or no manager available, nothing to do
+	if ciManager == nil {
+		fmt.Println("No CI system configured, skipping pipeline generation")
+		return nil
 	}
-
-	// Generate each selected feature
-	for _, featureID := range cfg.Pipeline.SelectedFeatures {
-		generatorFunc, exists := featureGenerators[featureID]
-		if !exists {
-			fmt.Printf("Warning: Unknown feature '%s' selected\n", featureID)
-			continue
+	
+	// Create directories based on CI type
+	switch ciManager.GetType() {
+	case model.GithubActionsCI:
+		// Create GitHub workflows directory
+		if err := os.MkdirAll(".github/workflows", 0755); err != nil {
+			return fmt.Errorf("failed to create GitHub workflows directory: %w", err)
 		}
+	case model.GitlabCI:
+		// GitLab CI doesn't need special directories
+	case model.CircleCI:
+		// Create CircleCI directory
+		if err := os.MkdirAll(".circleci", 0755); err != nil {
+			return fmt.Errorf("failed to create CircleCI directory: %w", err)
+		}
+	}
 
-		if err := generatorFunc(cfg, templatesDir); err != nil {
-			return fmt.Errorf("failed to generate feature '%s': %w", featureID, err)
+	// Generate all selected CI features using the CI manager
+	if err := ciManager.Generate(); err != nil {
+		return fmt.Errorf("failed to generate CI configuration: %w", err)
+	}
+	
+	// Generate container if selected
+	if hasFeature(cfg.Pipeline.SelectedFeatures, "container") {
+		if err := generateContainer(cfg, templatesDir); err != nil {
+			return fmt.Errorf("failed to generate container feature: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// generateCommitLint generates commit-lint configuration
+// hasFeature checks if a feature is in the selected features list
+func hasFeature(features []string, target string) bool {
+	for _, f := range features {
+		if f == target {
+			return true
+		}
+	}
+	return false
+}
+
+// generateCommitLint generates commit-lint configuration that's not CI-specific
+// Note: CI-specific commit-lint workflows are now handled by the CI Manager
 func generateCommitLint(cfg *model.Config, templatesDir string) error {
 	changelogGen := changelog.NewGenerator(cfg)
 
@@ -185,16 +211,11 @@ func generateCommitLint(cfg *model.Config, templatesDir string) error {
 		fmt.Printf("Warning: failed to generate Git hook: %v\n", err)
 	}
 
-	// Generate GitHub workflow for commit validation
-	githubGen := github.NewGenerator(cfg, templatesDir)
-	if err := githubGen.GenerateCommitLintWorkflow(); err != nil {
-		return fmt.Errorf("failed to generate commit-lint workflow: %w", err)
-	}
-
 	return nil
 }
 
-// generateChangelog generates changelog configuration
+// generateChangelog generates changelog configuration that's not CI-specific
+// Note: CI-specific changelog workflows are now handled by the CI Manager
 func generateChangelog(cfg *model.Config, templatesDir string) error {
 	changelogGen := changelog.NewGenerator(cfg)
 
@@ -203,47 +224,27 @@ func generateChangelog(cfg *model.Config, templatesDir string) error {
 		return fmt.Errorf("failed to generate changelog: %w", err)
 	}
 
-	// Generate GitHub workflow for changelog updates
-	githubGen := github.NewGenerator(cfg, templatesDir)
-	if err := githubGen.GenerateChangelogWorkflow(); err != nil {
-		return fmt.Errorf("failed to generate changelog workflow: %w", err)
-	}
-
 	return nil
 }
 
-// generateRelease generates release configuration
+// generateRelease is now handled by the CI Manager
 func generateRelease(cfg *model.Config, templatesDir string) error {
-	// Generate GitHub workflow for releases
-	githubGen := github.NewGenerator(cfg, templatesDir)
-	if err := githubGen.GenerateReleaseWorkflow(); err != nil {
-		return fmt.Errorf("failed to generate release workflow: %w", err)
-	}
-
+	// This function is kept for compatibility but is now a no-op
+	// as release workflows are handled by the CI Manager
 	return nil
 }
 
-// generateDependabot generates Dependabot configuration
+// generateDependabot is now handled by the CI Manager
 func generateDependabot(cfg *model.Config, templatesDir string) error {
-	// Generate Dependabot configuration
-	githubGen := github.NewGenerator(cfg, templatesDir)
-	if err := githubGen.GenerateDependabotConfig(); err != nil {
-		return fmt.Errorf("failed to generate Dependabot config: %w", err)
-	}
-
+	// This function is kept for compatibility but is now a no-op
+	// as dependabot config is handled by the CI Manager
 	return nil
 }
 
-// generateCI generates CI pipeline configuration
+// generateCI is now handled by the CI Manager
 func generateCI(cfg *model.Config, templatesDir string) error {
-	// Create GitHub generator
-	githubGen := github.NewGenerator(cfg, templatesDir)
-
-	// Generate CI workflow
-	if err := githubGen.GenerateCIWorkflow(); err != nil {
-		return err
-	}
-
+	// This function is kept for compatibility but is now a no-op
+	// as CI workflow generation is handled by the CI Manager
 	return nil
 }
 
