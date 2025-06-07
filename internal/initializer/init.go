@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/Caezarr-OSS/Scotter/internal/generator/changelog"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/ci"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/code"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/container"
@@ -196,57 +195,8 @@ func hasFeature(features []string, target string) bool {
 	return false
 }
 
-// generateCommitLint generates commit-lint configuration that's not CI-specific
-// Note: CI-specific commit-lint workflows are now handled by the CI Manager
-func generateCommitLint(cfg *model.Config, templatesDir string) error {
-	changelogGen := changelog.NewGenerator(cfg)
-
-	// Generate commitlint configuration
-	if err := changelogGen.GenerateCommitLintConfig(); err != nil {
-		return fmt.Errorf("failed to generate commitlint config: %w", err)
-	}
-
-	// Generate Git commit-msg hook
-	if err := changelogGen.GenerateCommitMsgHook(); err != nil {
-		fmt.Printf("Warning: failed to generate Git hook: %v\n", err)
-	}
-
-	return nil
-}
-
-// generateChangelog generates changelog configuration that's not CI-specific
-// Note: CI-specific changelog workflows are now handled by the CI Manager
-func generateChangelog(cfg *model.Config, templatesDir string) error {
-	changelogGen := changelog.NewGenerator(cfg)
-
-	// Generate CHANGELOG.md
-	if err := changelogGen.GenerateChangelog(); err != nil {
-		return fmt.Errorf("failed to generate changelog: %w", err)
-	}
-
-	return nil
-}
-
-// generateRelease is now handled by the CI Manager
-func generateRelease(cfg *model.Config, templatesDir string) error {
-	// This function is kept for compatibility but is now a no-op
-	// as release workflows are handled by the CI Manager
-	return nil
-}
-
-// generateDependabot is now handled by the CI Manager
-func generateDependabot(cfg *model.Config, templatesDir string) error {
-	// This function is kept for compatibility but is now a no-op
-	// as dependabot config is handled by the CI Manager
-	return nil
-}
-
-// generateCI is now handled by the CI Manager
-func generateCI(cfg *model.Config, templatesDir string) error {
-	// This function is kept for compatibility but is now a no-op
-	// as CI workflow generation is handled by the CI Manager
-	return nil
-}
+// Note: Previous functions for generating CI components have been removed
+// These are now handled by specialized CI Managers
 
 // generateContainer generates container configuration
 func generateContainer(cfg *model.Config, templatesDir string) error {
