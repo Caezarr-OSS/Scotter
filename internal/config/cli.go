@@ -46,7 +46,7 @@ func ParseInitFlags(args []string) *CommandLineArgs {
 	githubActions := initCmd.Bool("github-actions", true, "Configure GitHub Actions")
 	useTaskfile := initCmd.Bool("taskfile", true, "Include a Taskfile")
 	useMakefile := initCmd.Bool("makefile", false, "Include a Makefile")
-	noInteractive := initCmd.Bool("no-interactive", false, "Disable interactive prompts")
+	// Interactive mode has been completely removed - always non-interactive
 	containerFormat := initCmd.String("container-format", "dockerfile", "Container file format (dockerfile, containerfile)")
 	targetOS := initCmd.String("os", "linux,darwin", "Comma-separated list of target operating systems")
 	targetArch := initCmd.String("arch", "amd64", "Comma-separated list of target architectures")
@@ -84,7 +84,7 @@ func ParseInitFlags(args []string) *CommandLineArgs {
 		UseGitHubActions: *githubActions,
 		UseTaskfile:      *useTaskfile,
 		UseMakefile:      *useMakefile,
-		NoInteractive:    *noInteractive,
+		NoInteractive:    true, // Mode non-interactif toujours actif
 		ContainerFormat:  *containerFormat,
 		TargetOS:         osList,
 		TargetArch:       archList,

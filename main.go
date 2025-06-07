@@ -34,19 +34,8 @@ func main() {
 		fmt.Println("Initializing project...")
 		args := config.ParseInitFlags(os.Args[2:])
 		
-		var cfg *model.Config
-		if args.NoInteractive || args.ProjectName != "" || args.GoProjectType != "" || len(args.PipelineFeatures) > 0 {
-			// Create configuration from command line args in non-interactive mode
-			cfg = config.CreateConfigFromArgs(args)
-		} else {
-			// Fall back to interactive mode if no specific flags are provided
-			fmt.Println("Starting interactive mode. Use --no-interactive flag to disable.")
-			if err := initializer.InitProject(); err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
-			}
-			return
-		}
+		// Always use non-interactive mode
+		cfg := config.CreateConfigFromArgs(args)
 		
 		// Initialize using the configuration
 		if err := initializer.InitProjectWithConfig(cfg); err != nil {
@@ -165,7 +154,7 @@ func printUsage() {
 	fmt.Println("  --github-actions Enable GitHub Actions [default: true]")
 	fmt.Println("  --taskfile       Include a Taskfile [default: true]")
 	fmt.Println("  --makefile       Include a Makefile [default: false]")
-	fmt.Println("  --no-interactive Disable interactive prompts")
+	// Option interactive retirée - toujours en mode non-interactif
 	fmt.Println("  --os             Comma-separated list of target operating systems [default: linux,darwin]")
 	fmt.Println("  --arch           Comma-separated list of target architectures [default: amd64]")
 	fmt.Println("\nRun 'scotter target --help' for information on target commands")
