@@ -21,6 +21,34 @@ This project provides a REST API with the following endpoints:
 
 - `GET /api/health` - Health check endpoint
 - `GET /api/version` - Version information
+{{else if eq .ProjectType "library"}}
+## Installation
+
+```bash
+go get -u {{.ModulePath}}@latest
+```
+
+## Usage
+
+```go
+import "{{.ModulePath}}"
+
+func main() {
+    // See examples directory for detailed usage examples
+    result := {{.ProjectName}}.YourFunction()
+    fmt.Println(result)
+}
+```
+
+## Documentation
+
+- [API Reference](./docs/API.md)
+- [Examples](./examples/)
+- [Contributing](./CONTRIBUTING.md)
+
+### Versioning
+
+This library follows [semantic versioning](https://semver.org/). All versions are available as Go modules with appropriate tags using the `v` prefix (e.g., `v1.0.0`), which is required for Go library versioning.
 {{end}}
 
 ## Development

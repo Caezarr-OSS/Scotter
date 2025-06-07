@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/Caezarr-OSS/Scotter/internal/config"
 	"github.com/Caezarr-OSS/Scotter/internal/generator/taskfile"

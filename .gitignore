@@ -8,8 +8,9 @@
 *.so
 *.dylib
 
-# Binaire spécifique du projet
+# Binaires spécifiques du projet
 scotter
+Scotter
 
 # Test binary, built with `go test -c`
 *.test

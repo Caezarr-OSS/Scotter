@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"text/template"
 
 	"github.com/Caezarr-OSS/Scotter/internal/model"
 )
@@ -183,10 +182,6 @@ func (g *Generator) generateWorkflow(workflowName string) error {
 	
 	// Créer le répertoire .github/workflows s'il n'existe pas
 	workflowsDir := filepath.Join(".github", "workflows")
-	
-	// Nous n'avons plus besoin d'obtenir le répertoire de travail actuel
-	
-	// Créer le répertoire .github/workflows
 	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
 		return fmt.Errorf("failed to create workflows directory: %v", err)
 	}
@@ -198,24 +193,25 @@ func (g *Generator) generateWorkflow(workflowName string) error {
 
 	outputPath := filepath.Join(workflowsDir, workflowName)
 	
-	// Nous n'avons plus besoin de convertir les chemins en chemins absolus
+	// Utiliser les délimiteurs personnalisés pour les templates GitHub Actions
+	// Cela permet d'éviter les conflits avec la syntaxe GitHub Actions ${{ ... }}
+	delimiters := GitHubWorkflowDelimiters()
 	
-	// Nous allons directement essayer de parser le template
-	// Si le fichier n'existe pas, ParseFiles renverra une erreur appropriée
-	
-	tmpl, err := template.ParseFiles(templatePath)
+	// Exécuter le template avec les délimiteurs personnalisés
+	result, err := ExecuteTemplateWithDelimiters(templatePath, g.Config, delimiters)
 	if err != nil {
-		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
+		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
 	}
 	
+	// Écrire le résultat dans le fichier de sortie
 	file, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %w", outputPath, err)
 	}
 	defer file.Close()
 	
-	if err := tmpl.Execute(file, g.Config); err != nil {
-		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
+	if _, err := file.WriteString(result); err != nil {
+		return fmt.Errorf("failed to write to file %s: %w", outputPath, err)
 	}
 	
 	return nil
@@ -268,19 +264,24 @@ func (g *Generator) generateGoReleaserConfig() error {
 	templatePath := filepath.Join(g.TemplateDir, "goreleaser.yml.tmpl")
 	outputPath := ".goreleaser.yml"
 	
-	tmpl, err := template.ParseFiles(templatePath)
+	// Utiliser les délimiteurs personnalisés pour les templates YAML
+	delimiters := GitHubWorkflowDelimiters()
+	
+	// Exécuter le template avec les délimiteurs personnalisés
+	result, err := ExecuteTemplateWithDelimiters(templatePath, g.Config, delimiters)
 	if err != nil {
-		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
+		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
 	}
 	
+	// Écrire le résultat dans le fichier de sortie
 	file, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %w", outputPath, err)
 	}
 	defer file.Close()
 	
-	if err := tmpl.Execute(file, g.Config); err != nil {
-		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
+	if _, err := file.WriteString(result); err != nil {
+		return fmt.Errorf("failed to write to file %s: %w", outputPath, err)
 	}
 	
 	fmt.Println("GoReleaser configuration generated successfully!")
@@ -289,32 +290,57 @@ func (g *Generator) generateGoReleaserConfig() error {
 
 // generateDependabot generates Dependabot configuration
 func (g *Generator) generateDependabot() error {
-	// Create base content
-	content := "version: 2\nupdates:\n"
-
-	// Add language-specific Dependabot configurations
-	if g.Config.Language == model.GoLang {
-		content += `  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-
-`
+	// Liste des chemins possibles pour trouver le template
+	possiblePaths := []string{
+		filepath.Join("templates", "github", "dependabot.yml.tmpl"),
+		filepath.Join(g.TemplateDir, "github", "dependabot.yml.tmpl"),
+		filepath.Join(g.TemplateDir, "dependabot.yml.tmpl"),
+	}
+	
+	// Chercher le template dans tous les chemins possibles
+	var templatePath string
+	var templateFound bool
+	
+	for _, path := range possiblePaths {
+		_, err := os.Stat(path)
+		if err == nil {
+			templateFound = true
+			templatePath = path
+			break
+		}
+	}
+	
+	if !templateFound {
+		return fmt.Errorf("template not found: dependabot.yml.tmpl (tried %v)", possiblePaths)
 	}
 
-	// Add GitHub Actions Dependabot configuration
-	content += `  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-`
-
+	// Créer le répertoire .github s'il n'existe pas
 	dependabotDir := filepath.Join(".github")
 	if err := os.MkdirAll(dependabotDir, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dependabotDir, err)
 	}
 
-	return os.WriteFile(filepath.Join(dependabotDir, "dependabot.yml"), []byte(content), 0644)
+	outputPath := filepath.Join(dependabotDir, "dependabot.yml")
+	
+	// Utiliser les délimiteurs personnalisés pour les templates YAML
+	delimiters := GitHubWorkflowDelimiters()
+	
+	// Exécuter le template avec les délimiteurs personnalisés
+	result, err := ExecuteTemplateWithDelimiters(templatePath, g.Config, delimiters)
+	if err != nil {
+		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
+	}
+	
+	// Écrire le résultat dans le fichier de sortie
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %w", outputPath, err)
+	}
+	defer file.Close()
+	
+	if _, err := file.WriteString(result); err != nil {
+		return fmt.Errorf("failed to write to file %s: %w", outputPath, err)
+	}
+	
+	return nil
 }

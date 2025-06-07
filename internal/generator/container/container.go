@@ -126,7 +126,7 @@ func (g *Generator) generateContainerFile(templateName, outputFileName string) e
 // generateWorkflow generates a GitHub workflow file from template
 func (g *Generator) generateWorkflow(workflowName string) error {
 	// Get template path
-	templatePath := filepath.Join(g.TemplateDir, "github", workflowName)
+	templatePath := filepath.Join(g.TemplateDir, "github", workflowName+".tmpl")
 
 	// Create output directory
 	outputDir := filepath.Join(".", ".github", "workflows")
