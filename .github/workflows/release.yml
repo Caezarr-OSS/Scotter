@@ -6,7 +6,7 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'  # Format standard pour Scotter (sans préfixe 'v')
 
 jobs:
-  release:
+  goreleaser:
     name: Release
     runs-on: ubuntu-latest
     permissions:
@@ -21,15 +21,17 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+          
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft --version
       
       - name: Get release version from tag
         id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      
-      - name: Build with version script
         run: |
-          chmod +x ./scripts/build.sh
-          ./scripts/build.sh
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$TAG" >> $GITHUB_OUTPUT
         
       - name: Generate changelog
         id: changelog
@@ -38,28 +40,14 @@ jobs:
           git log --pretty=format:'- %s' $(git describe --tags --abbrev=0 HEAD^)..HEAD | grep -v 'Merge pull request' | grep -v 'Merge branch' >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
-          name: Release ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            ## What's Changed
-            ${{ steps.changelog.outputs.CHANGELOG }}
-            
-            ## Installation
-            ```
-            # Install directly
-            curl -sSL https://github.com/Caezarr-OSS/Scotter/releases/download/${{ steps.get_version.outputs.VERSION }}/scotter-${{ runner.os }}-${{ runner.arch }} -o /usr/local/bin/scotter
-            chmod +x /usr/local/bin/scotter
-            
-            # Or build from source
-            git clone https://github.com/Caezarr-OSS/Scotter.git
-            cd Scotter
-            go install .
-            ```
-          files: |
-            scotter
-          draft: false
-          prerelease: false
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          # Indique à GoReleaser de ne pas préfixer avec v
+          GORELEASER_CURRENT_TAG: ${{ steps.get_version.outputs.VERSION }}

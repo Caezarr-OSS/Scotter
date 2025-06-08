@@ -14,10 +14,10 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/scotter
+    main: .
     ldflags:
       - -s -w
-      - -X main.Version={{.Version}}
+      - -X main.Version={{.Env.VERSION}}
       - -X main.CommitSHA={{.Commit}}
       - -X main.BuildDate={{.Date}}
     binary: scotter
