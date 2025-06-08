@@ -18,7 +18,7 @@ var (
 )
 
 func main() {
-	fmt.Printf("Scotter v%s (%s) built on %s\n", Version, CommitSHA, BuildDate)
+	fmt.Printf("Scotter %s (%s) built on %s\n", Version, CommitSHA, BuildDate)
 	fmt.Println("A modular project bootstrapper with pipeline features")
 
 	if len(os.Args) < 2 {
