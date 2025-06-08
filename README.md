@@ -164,6 +164,10 @@ Scotter utilise un système de templates standardisé pour générer le contenu 
 - **CI/CD** : Templates pour les workflows d'intégration et de déploiement continus
 - **Builds** : Templates pour les outils de build comme Taskfile, Makefile, etc.
 
+### Customizing Templates
+
+All templates use Go's text/template syntax and can be customized as needed. The template system is designed to be extensible, allowing users to modify existing templates or create new ones for specific project requirements.
+
 ## Documentation
 
 ### User Documentation
