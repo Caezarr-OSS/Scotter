@@ -130,7 +130,7 @@ func main() {
 		}
 		
 	case "version":
-		fmt.Printf("Scotter v%s (%s) built on %s\n", Version, CommitSHA, BuildDate)
+		fmt.Printf("Scotter %s (%s) built on %s\n", Version, CommitSHA, BuildDate)
 		
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
