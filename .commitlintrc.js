@@ -42,6 +42,14 @@ module.exports = {
         'exceptions': ['docs']
       }
     ],
+    // Règle scope-required qui confirme l'exception pour docs
+    'scope-required': [
+      2,
+      'always',
+      {
+        'exceptions': ['docs']
+      }
+    ],
     'subject-case': [0],
     'body-max-line-length': [0]
   }
