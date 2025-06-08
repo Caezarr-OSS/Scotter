@@ -35,17 +35,10 @@ module.exports = {
         'build'
       ]
     ],
+    // La règle scope-empty est configurée pour exiger un scope pour tous les types de commits SAUF docs
     'scope-empty': [
       2,
       'never',
-      {
-        'exceptions': ['docs']
-      }
-    ],
-    // Règle scope-required qui confirme l'exception pour docs
-    'scope-required': [
-      2,
-      'always',
       {
         'exceptions': ['docs']
       }
