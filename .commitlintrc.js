@@ -29,6 +29,7 @@ module.exports = {
         'config',
         'init',
         'cli',
+        'ci',
         'docs',
         'deps'
       ]
