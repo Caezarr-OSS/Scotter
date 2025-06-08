@@ -44,12 +44,25 @@ func (g *Generator) Generate() error {
 		case model.DefaultGoType:
 			// Minimal structure, nothing to add
 		case model.LibraryGoType:
-			// Structure optimisée pour les bibliothèques Go
+			// Structure optimisée pour les bibliothèques Go (pour compatibilité)
 			dirs = append(dirs, 
 				"pkg",       // Code exportable et réutilisable
 				"internal",  // Code interne non exporté
 				"examples",  // Exemples d'utilisation de la bibliothèque
 				"docs",      // Documentation détaillée
+			)
+		case model.DistributedLibraryGoType:
+			// Structure optimisée pour les bibliothèques Go destinées à être distribuées
+			dirs = append(dirs, 
+				"pkg",       // Code exportable et réutilisable
+				"internal",  // Code interne non exporté
+				"examples",  // Exemples d'utilisation de la bibliothèque
+				"docs",      // Documentation détaillée
+			)
+		case model.LocalLibraryGoType:
+			// Structure simplifiée pour les bibliothèques Go locales
+			dirs = append(dirs, 
+				"pkg",       // Code exportable et réutilisable
 			)
 		case model.CLIGoType:
 			dirs = append(dirs,

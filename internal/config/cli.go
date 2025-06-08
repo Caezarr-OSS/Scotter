@@ -40,7 +40,7 @@ func ParseInitFlags(args []string) *CommandLineArgs {
 	// Define flags
 	projectName := initCmd.String("name", "", "Project name")
 	language := initCmd.String("lang", "go", "Programming language (go, none)")
-	goType := initCmd.String("go-type", "default", "Go project type (default, library, cli, api)")
+	goType := initCmd.String("go-type", "default", "Go project type (default, local-library, distributed-library, cli, api)")
 	modulePath := initCmd.String("module", "", "Go module path (e.g., github.com/username/project)")
 	features := initCmd.String("features", "ci", "Comma-separated pipeline features (ci,commit-lint,changelog,release,dependabot,container)")
 	githubActions := initCmd.Bool("github-actions", true, "Configure GitHub Actions")
@@ -142,7 +142,12 @@ func CreateConfigFromArgs(args *CommandLineArgs) *model.Config {
 		case "default":
 			cfg.Go.ProjectType = model.DefaultGoType
 		case "library":
+			// Pour maintenir la compatibilité avec les versions antérieures
 			cfg.Go.ProjectType = model.LibraryGoType
+		case "local-library":
+			cfg.Go.ProjectType = model.LocalLibraryGoType
+		case "distributed-library":
+			cfg.Go.ProjectType = model.DistributedLibraryGoType
 		case "cli":
 			cfg.Go.ProjectType = model.CLIGoType
 		case "api":

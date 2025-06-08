@@ -82,15 +82,22 @@ func (m *GitHubActionsManager) Generate() error {
 	}
 	
 	if hasRelease {
-		if err := m.GenerateWorkflow("release", filepath.Join(".github", "workflows", "release.yml")); err != nil {
-			return fmt.Errorf("failed to generate release workflow: %w", err)
-		}
+		// Ne pas générer le workflow de release pour les bibliothèques locales
+		skipRelease := m.config.Language == model.GoLang && m.config.Go.ProjectType == model.LocalLibraryGoType
 		
-		// Pour les projets Go, générer la configuration GoReleaser
-		if m.config.Language == model.GoLang {
-			if err := m.generateGoReleaserConfig(); err != nil {
-				return fmt.Errorf("failed to generate GoReleaser config: %w", err)
+		if !skipRelease {
+			if err := m.GenerateWorkflow("release", filepath.Join(".github", "workflows", "release.yml")); err != nil {
+				return fmt.Errorf("failed to generate release workflow: %w", err)
 			}
+			
+			// Pour les projets Go, générer la configuration GoReleaser
+			if m.config.Language == model.GoLang {
+				if err := m.generateGoReleaserConfig(); err != nil {
+					return fmt.Errorf("failed to generate GoReleaser config: %w", err)
+				}
+			}
+		} else {
+			fmt.Println("Skipping release workflow for local library...")
 		}
 	}
 	
@@ -168,6 +175,49 @@ func (m *GitHubActionsManager) generateCommitlintConfig() error {
 
 // generateGoReleaserConfig génère la configuration GoReleaser
 func (m *GitHubActionsManager) generateGoReleaserConfig() error {
+	// Déterminer le template à utiliser en fonction du type de projet
+	
+	if m.config.Language == model.GoLang {
+		switch m.config.Go.ProjectType {
+		case model.LocalLibraryGoType:
+			// Pour les bibliothèques locales, utiliser le template local
+			fmt.Println("Generating GoReleaser configuration for local library...")
+			return m.templateMgr.GenerateFileFromTemplate(
+				"goreleaser_local",
+				".goreleaser.yml",
+				[]string{".yml.tmpl", ".yaml.tmpl"},
+			)
+		
+		case model.DistributedLibraryGoType:
+			// Pour les bibliothèques distribuées, utiliser le template distribué
+			fmt.Println("Generating GoReleaser configuration for distributed library...")
+			return m.templateMgr.GenerateFileFromTemplate(
+				"goreleaser_distributed",
+				".goreleaser.yml",
+				[]string{".yml.tmpl", ".yaml.tmpl"},
+			)
+		
+		case model.LibraryGoType:
+			// Pour la compatibilité avec les versions antérieures
+			// On utilise le template distribué par défaut pour les bibliothèques existantes
+			fmt.Println("Generating GoReleaser configuration for standard library...")
+			return m.templateMgr.GenerateFileFromTemplate(
+				"goreleaser_distributed",
+				".goreleaser.yml",
+				[]string{".yml.tmpl", ".yaml.tmpl"},
+			)
+		
+		default:
+			// Pour les applications standards (non-bibliothèques)
+			return m.templateMgr.GenerateFileFromTemplate(
+				"goreleaser",
+				".goreleaser.yml",
+				[]string{".yml.tmpl", ".yaml.tmpl"},
+			)
+		}
+	}
+	
+	// Pour les autres langages, générer la configuration standard
 	return m.templateMgr.GenerateFileFromTemplate(
 		"goreleaser", 
 		".goreleaser.yml",

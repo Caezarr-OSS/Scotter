@@ -148,7 +148,7 @@ func printUsage() {
 	fmt.Println("\nOptions for 'init':")
 	fmt.Println("  --name           Project name")
 	fmt.Println("  --lang           Programming language (go, none) [default: go]")
-	fmt.Println("  --go-type        Go project type (default, library, cli, api) [default: default]")
+	fmt.Println("  --go-type        Go project type (default, local-library, distributed-library, cli, api) [default: default]")
 	fmt.Println("  --module         Go module path (e.g., github.com/username/project)")
 	fmt.Println("  --features       Comma-separated pipeline features (ci,commit-lint,changelog,release,dependabot,container)")
 	fmt.Println("  --github-actions Enable GitHub Actions [default: true]")

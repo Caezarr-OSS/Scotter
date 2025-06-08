@@ -20,8 +20,12 @@ type GoProjectType string
 const (
 	// DefaultGoType is a minimal Go project structure
 	DefaultGoType GoProjectType = "default"
-	// LibraryGoType is for Go packages/libraries
+	// LibraryGoType is for Go packages/libraries (distributed via GitHub/Go modules)
 	LibraryGoType GoProjectType = "library"
+	// LocalLibraryGoType is for Go packages/libraries intended for local use only
+	LocalLibraryGoType GoProjectType = "local-library"
+	// DistributedLibraryGoType is for Go packages/libraries intended to be distributed via GitHub/Go modules
+	DistributedLibraryGoType GoProjectType = "distributed-library"
 	// CLIGoType is for command-line applications
 	CLIGoType GoProjectType = "cli"
 	// APIGoType is for HTTP API/service applications
@@ -37,6 +41,10 @@ func (pt GoProjectType) String() string {
 		return "Default"
 	case LibraryGoType:
 		return "Library"
+	case LocalLibraryGoType:
+		return "Local Library"
+	case DistributedLibraryGoType:
+		return "Distributed Library"
 	case CLIGoType:
 		return "CLI"
 	case APIGoType:
@@ -145,7 +153,7 @@ func (cfg *Config) Validate() error {
 	if cfg.Language == GoLang {
 		// Check project type
 		validType := false
-		for _, pt := range []GoProjectType{DefaultGoType, LibraryGoType, CLIGoType, APIGoType} {
+		for _, pt := range []GoProjectType{DefaultGoType, LibraryGoType, LocalLibraryGoType, DistributedLibraryGoType, CLIGoType, APIGoType, CompleteGoType} {
 			if cfg.Go.ProjectType == pt {
 				validType = true
 				break
