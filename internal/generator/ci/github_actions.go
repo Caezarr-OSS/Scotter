@@ -82,23 +82,27 @@ func (m *GitHubActionsManager) Generate() error {
 	}
 	
 	if hasRelease {
-		// Ne pas générer le workflow de release pour les bibliothèques locales
-		skipRelease := m.config.Language == model.GoLang && m.config.Go.ProjectType == model.LocalLibraryGoType
+		// Pour les bibliothèques locales, on traite différemment
+		skipReleaseWorkflow := m.config.Language == model.GoLang && m.config.Go.ProjectType == model.LocalLibraryGoType
 		
-		if !skipRelease {
+		// Pour tous les types de projets, si le release est activé, générer une config GoReleaser
+		if m.config.Language == model.GoLang {
+			if err := m.generateGoReleaserConfig(); err != nil {
+				return fmt.Errorf("failed to generate GoReleaser config: %w", err)
+			}
+		}
+		
+		// Ne générer le workflow release que pour les projets non-locaux
+		if !skipReleaseWorkflow {
 			if err := m.GenerateWorkflow("release", filepath.Join(".github", "workflows", "release.yml")); err != nil {
 				return fmt.Errorf("failed to generate release workflow: %w", err)
-			}
-			
-			// Pour les projets Go, générer la configuration GoReleaser
-			if m.config.Language == model.GoLang {
-				if err := m.generateGoReleaserConfig(); err != nil {
-					return fmt.Errorf("failed to generate GoReleaser config: %w", err)
-				}
 			}
 		} else {
 			fmt.Println("Skipping release workflow for local library...")
 		}
+		
+		// Note: Même pour les bibliothèques locales, le fichier .goreleaser.yml est généré
+		// mais avec une configuration qui ne publie pas sur les dépôts Go
 	}
 	
 	if hasDependabot {
