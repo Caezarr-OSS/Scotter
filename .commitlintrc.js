@@ -31,10 +31,17 @@ module.exports = {
         'cli',
         'ci',
         'docs',
-        'deps'
+        'deps',
+        'build'
       ]
     ],
-    'scope-empty': [2, 'never'],
+    'scope-empty': [
+      2,
+      'never',
+      {
+        'exceptions': ['docs']
+      }
+    ],
     'subject-case': [0],
     'body-max-line-length': [0]
   }
