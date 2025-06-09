@@ -14,15 +14,15 @@ builds:
     goarch:
       - amd64
       - arm64
-    {{- if .IsLibrary }}
-    # Configuration pour une bibliothèque distribuée
-    mod_timestamp: '{{ .CommitTimestamp }}'
+{{ if .IsLibrary }}
+    # Configuration for a distributed library
+    mod_timestamp: '{{`{{.CommitTimestamp}}`}}'
     flags:
       - -trimpath
     ldflags:
       - -s -w
-    {{- else }}
-    # Configuration pour une application
+{{ else }}
+    # Configuration for an application
     main: ./cmd/{{ .ProjectName }}
     ldflags:
       - -s -w
@@ -30,7 +30,7 @@ builds:
       - -X main.CommitSHA={{`{{.Commit}}`}}
       - -X main.BuildDate={{`{{.Date}}`}}
     binary: {{ .ProjectName }}
-    {{- end }}
+{{ end }}
 
 archives:
   - format: tar.gz
@@ -70,11 +70,11 @@ snapshot:
 gomod:
   proxy: true
 
-# Configuration pour publier sur les dépôts Go
+# Configuration for publishing to Go repositories
 release:
   github:
     owner: {{ .GitHubOwner }}
-    name: {{ .GitHubRepo }}
+    name: {{ .ProjectName }}
   draft: false
   prerelease: auto
 

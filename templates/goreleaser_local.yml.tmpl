@@ -14,15 +14,15 @@ builds:
     goarch:
       - amd64
       - arm64
-    {{- if .IsLibrary }}
-    # Configuration pour une bibliothèque locale
-    mod_timestamp: '{{ .CommitTimestamp }}'
+{{ if .IsLibrary }}
+    # Configuration for a library
+    mod_timestamp: '{{`{{.CommitTimestamp}}`}}'
     flags:
       - -trimpath
     ldflags:
       - -s -w
-    {{- else }}
-    # Configuration pour une application
+{{ else }}
+    # Configuration for an application
     main: ./cmd/{{ .ProjectName }}
     ldflags:
       - -s -w
@@ -30,7 +30,7 @@ builds:
       - -X main.CommitSHA={{`{{.Commit}}`}}
       - -X main.BuildDate={{`{{.Date}}`}}
     binary: {{ .ProjectName }}
-    {{- end }}
+{{ end }}
 
 archives:
   - format: tar.gz
@@ -66,14 +66,14 @@ snapshot:
 #       - "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
 
 
-# Configuration pour publication sur GitHub uniquement
+# Configuration for GitHub release only
 release:
   github:
     owner: {{ .GitHubOwner }}
-    name: {{ .GitHubRepo }}
+    name: {{ .ProjectName }}
   draft: false
   prerelease: auto
 
-# Désactivation explicite de gomod pour éviter la publication sur proxy.golang.org
+# Explicit deactivation of gomod to prevent publication on proxy.golang.org
 gomod:
   proxy: false
