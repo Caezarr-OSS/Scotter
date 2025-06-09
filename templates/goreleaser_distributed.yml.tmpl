@@ -34,11 +34,7 @@ builds:
 
 archives:
   - format: tar.gz
-    name_template: >-
-      {{`{{ .ProjectName }}_`}}
-      {{`{{ .Version }}_`}}
-      {{`{{ .Os }}_`}}
-      {{`{{ .Arch }}`}}
+    name_template: "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}`}}"
     format_overrides:
       - goos: windows
         format: zip
@@ -62,11 +58,13 @@ checksum:
 snapshot:
   name_template: "{{`{{ incpatch .Version }}`}}-next"
 
-sboms:
-  - id: {{`{{ .ProjectName }}`}}-sbom
-    artifacts: binary
-    documents:
-      - "{{`{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
+# SBOM configuration - Uncomment when ready to use
+# sboms:
+#   - id: "{{ .ProjectName }}-sbom"
+#     artifacts: binary
+#     documents:
+#       - "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
+
 
 # Configuration spécifique pour les bibliothèques distribuées
 gomod:
