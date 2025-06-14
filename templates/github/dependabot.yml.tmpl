@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "{{ if eq .Language "go" }}gomod{{ else }}{{ .Language }}{{ end }}"
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"

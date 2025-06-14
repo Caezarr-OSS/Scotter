@@ -34,6 +34,8 @@ func NewGitHubActionsManager(config *model.Config, templateMgr *common.TemplateM
 // Generate génère tous les fichiers de workflow GitHub Actions
 func (m *GitHubActionsManager) Generate() error {
 	fmt.Println("Generating GitHub Actions workflows...")
+	fmt.Printf("Selected features: %v\n", m.config.Pipeline.SelectedFeatures)
+	fmt.Printf("UseGitHubActions: %v\n", m.config.Pipeline.UseGitHubActions)
 	
 	// Vérifier quelles fonctionnalités sont activées
 	hasCI := false
@@ -131,6 +133,7 @@ func (m *GitHubActionsManager) GetType() model.CIType {
 
 // GenerateWorkflow génère un workflow GitHub Actions spécifique
 func (m *GitHubActionsManager) GenerateWorkflow(workflowName, outputPath string) error {
+	fmt.Printf("Attempting to generate workflow: %s to %s\n", workflowName, outputPath)
 	// Extensions de fichiers acceptées pour les templates
 	extensions := []string{".yml.tmpl", ".yaml.tmpl"}
 	
