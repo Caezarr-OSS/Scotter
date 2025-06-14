@@ -134,12 +134,26 @@ goreleaser release --snapshot --clean --skip=publish
 
 ## SBOM Generation
 
-For Software Bill of Materials generation:
+Scotter automatically configures Software Bill of Materials (SBOM) generation in all GoReleaser templates. SBOMs provide transparency about your software's dependencies and components, which is increasingly important for security and compliance.
+
+The configuration uses Syft to generate SPDX-format SBOMs for each release artifact:
 
 ```yaml
 sboms:
   - artifacts: archive
+    documents:
+      - "${.ProjectName}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--file", "${.ProjectName}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json", "--output", "spdx-json"]
 ```
+
+Key features:
+- Uses Syft, a popular SBOM generation tool
+- Produces SPDX JSON format, which is widely used and compatible with security scanning tools
+- Creates unique filenames for each OS/architecture combination
+- SBOMs are automatically attached to GitHub releases
+
+For library projects without GoReleaser, Scotter adds a dedicated SBOM generation step in the GitHub Actions release workflow.
 
 ## References
 

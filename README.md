@@ -13,8 +13,9 @@ Scotter is a flexible scaffolding tool that simplifies project setup, GitHub env
 
 ### Modular Pipeline Features
 - **GitHub Actions**: Customizable CI/CD workflows
-- **Commit Validation**: Enforces conventional commits with commitlint
-- **Automatic Releases**: Generates releases with changelogs
+- **Commit Validation**: Enforces conventional commits with dedicated commitlint job
+- **Automatic Releases**: Generates releases with changelogs and Software Bill of Materials (SBOM)
+- **Security**: Automatically generates SBOM files for all release artifacts
 - **Build Tools**: Sets up Taskfile and/or Makefile based on project needs
 - **Container Support**: Generates Dockerfile or Containerfile based on your preference
 
