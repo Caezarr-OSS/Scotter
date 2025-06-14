@@ -38,7 +38,12 @@ func main() {
 		cfg := config.CreateConfigFromArgs(args)
 		
 		// Initialize using the configuration
-		if err := initializer.InitProjectWithConfig(cfg); err != nil {
+		// Check if workflows-only flag is set
+		workflowsOnly := args.WorkflowsOnly
+		if workflowsOnly {
+			fmt.Println("Workflows only mode: only generating GitHub Actions workflows")
+		}
+		if err := initializer.InitProjectWithConfig(cfg, workflowsOnly); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}

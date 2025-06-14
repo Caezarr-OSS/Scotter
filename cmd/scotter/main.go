@@ -28,7 +28,21 @@ func main() {
 	switch cmd {
 	case "init":
 		fmt.Println("Initializing project...")
-		if err := initializer.InitProject(); err != nil {
+		
+		// Check if --workflows-only flag is provided
+		workflowsOnly := false
+		for i := 2; i < len(os.Args); i++ {
+			if os.Args[i] == "--workflows-only" {
+				workflowsOnly = true
+				break
+			}
+		}
+		
+		if workflowsOnly {
+			fmt.Println("Workflows only mode: only generating GitHub Actions workflows")
+		}
+		
+		if err := initializer.InitProject(workflowsOnly); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -42,9 +56,11 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println("Usage: scotter <command>")
+	fmt.Println("Usage: scotter <command> [options]")
 	fmt.Println("Commands:")
 	fmt.Println("  init      Initialize a project with customizable pipeline features")
+	fmt.Println("Options:")
+	fmt.Println("  --workflows-only  Generate only GitHub Actions workflows without initializing Go module")
 	fmt.Println("  version   Show version information")
 	fmt.Println("\nSupported languages:")
 	fmt.Println("  - Go")

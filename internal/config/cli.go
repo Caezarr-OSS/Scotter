@@ -26,6 +26,7 @@ type CommandLineArgs struct {
 	ContainerFormat   string
 	TargetOS          []string
 	TargetArch        []string
+	WorkflowsOnly     bool       // Generate only GitHub Actions workflows without initializing Go module
 
 	// Target command flags
 	TargetAction string
@@ -50,6 +51,7 @@ func ParseInitFlags(args []string) *CommandLineArgs {
 	containerFormat := initCmd.String("container-format", "dockerfile", "Container file format (dockerfile, containerfile)")
 	targetOS := initCmd.String("os", "linux,darwin", "Comma-separated list of target operating systems")
 	targetArch := initCmd.String("arch", "amd64", "Comma-separated list of target architectures")
+	workflowsOnly := initCmd.Bool("workflows-only", false, "Generate only GitHub Actions workflows without initializing Go module")
 	
 	// Parse flags
 	err := initCmd.Parse(args)
@@ -88,6 +90,7 @@ func ParseInitFlags(args []string) *CommandLineArgs {
 		ContainerFormat:  *containerFormat,
 		TargetOS:         osList,
 		TargetArch:       archList,
+		WorkflowsOnly:    *workflowsOnly,
 	}
 }
 

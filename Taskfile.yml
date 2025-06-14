@@ -32,6 +32,11 @@ tasks:
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
         fi
       - golangci-lint run
+      
+  validate-yaml:
+    desc: Validate YAML files in generated projects
+    cmds:
+      - go run scripts/validators/post_generation_validator.go {{.CLI_ARGS | default "."}}
 
   clean:
     desc: Clean build artifacts
@@ -45,10 +50,6 @@ tasks:
       - task: build
       - echo "Binary built for {{OS}}/{{ARCH}} -> {{.BUILD_DIR}}/{{.BINARY_NAME}}"
     silent: false
-
-  release:
-    desc: Build release binaries for all supported platforms
-    deps: [clean, test]
 
   commitlint:
     desc: Check commit messages against conventional commits

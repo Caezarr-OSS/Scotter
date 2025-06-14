@@ -46,14 +46,14 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ github.ref_name }}
+          name: Release ${{ "{{" }} github.ref_name {{ "}}" }}
           body: |
             ## What's Changed
-            ${{ steps.changelog.outputs.CHANGELOG }}
+            ${{ "{{" }} steps.changelog.outputs.CHANGELOG {{ "}}" }}
             
             ## Installation
             ```
-            go get github.com/{{ .Github.Username }}/{{ .ProjectName }}@${{ github.ref_name }}
+            go get {{ .Go.ModulePath }}@${{ "{{" }} github.ref_name {{ "}}" }}
             ```
           draft: false
           prerelease: false

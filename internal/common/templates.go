@@ -27,8 +27,8 @@ func DefaultDelimiters() TemplateDelimiters {
 // CustomDelimiters renvoie les délimiteurs personnalisés (utilisés pour GitHub Actions, YAML, etc.)
 func CustomDelimiters() TemplateDelimiters {
 	return TemplateDelimiters{
-		Left:  "[[",
-		Right: "]]",
+		Left:  "{{",
+		Right: "}}",
 	}
 }
 
@@ -70,6 +70,7 @@ func (m *TemplateManager) WithDelimiters(delimiters TemplateDelimiters) *Templat
 
 // FindTemplate cherche un template dans plusieurs chemins possibles
 func (m *TemplateManager) FindTemplate(templateName string, extensions []string) (string, error) {
+	fmt.Printf("Finding template: %s with extensions %v in base dir %s\n", templateName, extensions, m.BaseTmplDir)
 	// Les chemins possibles pour le template, par ordre de priorité:
 	// 1. templates/{templateName}_{language}{.ext} - Spécifique au langage
 	// 2. templates/{templateName}{.ext} - Générique
