@@ -14,8 +14,7 @@ internal/templates/
 │   ├── readme.md.tmpl       # README template
 │   └── taskfile.yml.tmpl    # Taskfile template
 ├── github/                  # GitHub-related templates
-│   ├── ci.yml.tmpl          # GitHub Actions CI workflow
-│   ├── commitlint.yml.tmpl  # Commitlint workflow 
+│   ├── ci.yml.tmpl          # GitHub Actions CI workflow with integrated commit lint
 │   └── release.yml.tmpl     # Release workflow using GoReleaser
 ├── go/                      # Go-specific templates
 │   ├── default_main.go.tmpl # Template for minimal project main.go
