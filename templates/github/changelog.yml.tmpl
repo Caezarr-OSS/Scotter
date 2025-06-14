@@ -19,7 +19,7 @@ jobs:
       - name: Generate Changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
-          token: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           output: CHANGELOG.md
           
       - name: Upload Changelog as Artifact

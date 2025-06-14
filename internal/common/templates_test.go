@@ -22,8 +22,8 @@ func TestTemplateManager(t *testing.T) {
 	testTmplContent := `package main
 
 func main() {
-	// {{ .ProjectName }} Project
-	println("Hello, {{ .ProjectName }}!")
+	// [[ .ProjectName ]] Project
+	println("Hello, [[ .ProjectName ]]!")
 }
 `
 	if err := os.WriteFile(testTmplPath, []byte(testTmplContent), 0644); err != nil {
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Créer le TemplateManager
-	tmplMgr := NewTemplateManager(cfg, tmpDir, LangGo)
+	tmplMgr := NewTemplateManager(cfg, tmpDir, LangGo).WithDelimiters(CustomDelimiters())
 
 	// Test 1: Vérifier la localisation des templates
 	t.Run("TemplateLocator", func(t *testing.T) {
@@ -149,7 +149,7 @@ import (
 )
 
 func main() {
-	fmt.Println("{{ .ProjectName }} Project")
+	fmt.Println("[[ .ProjectName ]] Project")
 }
 `
 	if err := os.WriteFile(mainTmplPath, []byte(mainTmplContent), 0644); err != nil {
@@ -166,7 +166,7 @@ func main() {
 	}
 
 	// Créer le TemplateManager
-	tmplMgr := NewTemplateManager(cfg, templatesDir, LangGo)
+	tmplMgr := NewTemplateManager(cfg, templatesDir, LangGo).WithDelimiters(CustomDelimiters())
 
 	// Tester la génération d'un fichier
 	outputDir := filepath.Join(tmpDir, "output")

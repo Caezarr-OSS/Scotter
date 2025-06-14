@@ -2,11 +2,11 @@ name: Release
 
 on:
   push:
-    tags:{{if or (eq .ProjectName "lib-test") (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library")}}
+    tags:[[if or (eq .ProjectName "lib-test") (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library")]]
       # Go libraries MUST use semantic versioning with v prefix
-      - 'v[0-9]+.[0-9]+.[0-9]+'{{else}}
+      - 'v[0-9]+.[0-9]+.[0-9]+'[[else]]
       # Non-library Go projects MUST use semantic versioning WITHOUT v prefix
-      - '[0-9]+.[0-9]+.[0-9]+'{{end}}
+      - '[0-9]+.[0-9]+.[0-9]+'[[end]]
 
 jobs:
   goreleaser:
@@ -37,4 +37,4 @@ jobs:
           version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

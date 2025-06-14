@@ -19,16 +19,16 @@ type TemplateDelimiters struct {
 // DefaultDelimiters renvoie les délimiteurs par défaut pour les templates Go
 func DefaultDelimiters() TemplateDelimiters {
 	return TemplateDelimiters{
-		Left:  "{{",
-		Right: "}}",
+		Left:  "[[",
+		Right: "]]",
 	}
 }
 
 // CustomDelimiters renvoie les délimiteurs personnalisés (utilisés pour GitHub Actions, YAML, etc.)
 func CustomDelimiters() TemplateDelimiters {
 	return TemplateDelimiters{
-		Left:  "{{",
-		Right: "}}",
+		Left:  "[[",
+		Right: "]]",
 	}
 }
 
