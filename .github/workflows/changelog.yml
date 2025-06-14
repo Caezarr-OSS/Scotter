@@ -1,51 +1,30 @@
 name: Generate Changelog
-
 on:
-  # Manual trigger
   workflow_dispatch:
-  # Automatic trigger on push of version tags
   push:
-    tags:
-      - '[0-9]*.[0-9]*.[0-9]*'
-    paths-ignore:
-      - 'CHANGELOG.md'
+    branches:
+      - main
+      - master
 
 jobs:
-  generate-changelog:
-    name: Generate Changelog
+  changelog:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-    
+      contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: main  # Checkout main branch to ensure changelog is updated there
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+
+      - name: Generate Changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
-          node-version: 16
-      
-      - name: Install conventional-changelog-cli
-        run: npm install -g conventional-changelog-cli
-      
-      - name: Generate changelog
-        run: conventional-changelog -p angular -i CHANGELOG.md -s
-      
-      - name: Commit and push if changed
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -f CHANGELOG.md  # Force add even if in .gitignore
-          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update changelog [skip ci]"
-          git push origin main  # Push to main branch
+          token: ${{ secrets.GITHUB_TOKEN }}
+          output: CHANGELOG.md
           
-          # Also update the tag with the updated changelog
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          if [ -n "$TAG_NAME" ]; then
-            git tag -f $TAG_NAME
-            git push origin -f $TAG_NAME
-          fi
+      - name: Upload Changelog as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
+          retention-days: 30

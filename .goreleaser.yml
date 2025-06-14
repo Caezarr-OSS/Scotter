@@ -1,4 +1,4 @@
-project_name: scotter
+project_name: myproject
 
 before:
   hooks:
@@ -14,32 +14,35 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: .
+
+    # Configuration for an application
+    # Find the main entry point by priority order
+    
+    main: .   # Use the specified path if available
+    
     ldflags:
       - -s -w
-      - -X main.Version={{.Env.VERSION}}
+      - -X main.Version={{.Version}}
       - -X main.CommitSHA={{.Commit}}
       - -X main.BuildDate={{.Date}}
-    binary: scotter
+    binary: myproject
+
 
 archives:
   - format: tar.gz
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- .Version }}_
-      {{- .Os }}_
-      {{- .Arch }}
+    name_template: "myproject_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip
     files:
       - README.md
-      - LICENSE
-      - docs/*
+      # LICENSE file is optional but recommended
+      # - LICENSE
+      # Documentation directory is optional
+      # - docs/*
 
 changelog:
   sort: asc
-  use: git
   filters:
     exclude:
       - '^docs:'
@@ -49,12 +52,16 @@ changelog:
 
 checksum:
   name_template: 'checksums.txt'
+  algorithm: sha256
+
+# Generate Software Bill of Materials (SBOM) for all binaries
+sboms:
+  - artifacts: archive
+    documents:
+      - "${.ProjectName}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--file", "${.ProjectName}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json", "--output", "spdx-json"]
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
-sboms:
-  - id: scotter-sbom
-    artifacts: binary
-    documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json"

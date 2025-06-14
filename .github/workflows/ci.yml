@@ -1,15 +1,33 @@
-name: CI
+name: Project CI
 
 on:
   push:
-    branches: [develop, main, 'feature/*', 'release/*']
+    branches: ['**']
   pull_request:
     branches: [develop, main]
 
 jobs:
+  lint-commits:
+    name: Lint Commits
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Check commit convention
+        uses: wagoid/commitlint-github-action@v5
+
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    # Removed the dependency to make jobs run in parallel
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -19,6 +37,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         
+      # Template condition: UseTaskFile
       - name: Install Task
         uses: arduino/setup-task@v1
         with:
