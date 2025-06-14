@@ -28,7 +28,3 @@ vendor/
 # Build artifacts
 dist/
 bin/
-
-# Project specific binaries
-Scotter
-/scotter
