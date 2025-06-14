@@ -14,7 +14,7 @@ builds:
     goarch:
       - amd64
       - arm64
-{{ if .IsLibrary }}
+{{ if or (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library") }}
     # Configuration for a distributed library
     mod_timestamp: '{{`{{.CommitTimestamp}}`}}'
     flags:
@@ -23,7 +23,12 @@ builds:
       - -s -w
 {{ else }}
     # Configuration for an application
-    main: ./cmd/{{ .ProjectName }}
+    # Find the main entry point by priority order
+    {{ if .Go.MainPath }}
+    main: {{ .Go.MainPath }}   # Use the specified path if available
+    {{ else }}
+    main: ./cmd/{{ .ProjectName }}  # Default path
+    {{ end }}
     ldflags:
       - -s -w
       - -X main.Version={{`{{.Version}}`}}
@@ -58,13 +63,13 @@ checksum:
 snapshot:
   name_template: "{{`{{ incpatch .Version }}`}}-next"
 
-# SBOM configuration - Uncomment when ready to use
-# sboms:
-#   - id: "{{ .ProjectName }}-sbom"
-#     artifacts: binary
-#     documents:
-#       - "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
-
+# Generate Software Bill of Materials (SBOM) for all binaries
+sboms:
+  - artifacts: archive
+    documents:
+      - "${.ProjectName}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
+    cmd: syft
+    args: ["$artifact", "--file", "${.ProjectName}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}", "--output", "spdx-json"]
 
 # Configuration spécifique pour les bibliothèques distribuées
 gomod:

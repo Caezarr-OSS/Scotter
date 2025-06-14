@@ -14,13 +14,24 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/{{ .ProjectName }}
+{{ if or (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library") }}
+    # Configuration for a library
+    skip: true    # Skip build for libraries that don't have executables
+{{ else }}
+    # Configuration for an application
+    # Find the main entry point by priority order
+    {{ if .Go.MainPath }}
+    main: {{ .Go.MainPath }}   # Use the specified path if available
+    {{ else }}
+    main: ./cmd/{{ .ProjectName }}  # Default path
+    {{ end }}
     ldflags:
       - -s -w
       - -X main.Version={{`{{.Version}}`}}
       - -X main.CommitSHA={{`{{.Commit}}`}}
       - -X main.BuildDate={{`{{.Date}}`}}
     binary: {{ .ProjectName }}
+{{ end }}
 
 archives:
   - format: tar.gz
@@ -46,14 +57,16 @@ changelog:
 
 checksum:
   name_template: 'checksums.txt'
+  algorithm: sha256
+
+# Generate Software Bill of Materials (SBOM) for all binaries
+sboms:
+  - artifacts: archive
+    documents:
+      - "${.ProjectName}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
+    cmd: syft
+    args: ["$artifact", "--file", "${.ProjectName}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}", "--output", "spdx-json"]
 
 snapshot:
   name_template: "{{`{{ incpatch .Version }}`}}-next"
-
-# SBOM configuration - Uncomment when ready to use
-# sboms:
-#   - id: "{{ .ProjectName }}-sbom"
-#     artifacts: binary
-#     documents:
-#       - "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.spdx.json`}}"
 
