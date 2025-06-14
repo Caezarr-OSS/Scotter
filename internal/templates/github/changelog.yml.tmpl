@@ -20,10 +20,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output: CHANGELOG.md
           
-      - name: Commit and Push Changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git commit -m "docs: update changelog" || echo "No changes to commit"
-          git push
+      - name: Upload Changelog as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: CHANGELOG.md
+          retention-days: 14

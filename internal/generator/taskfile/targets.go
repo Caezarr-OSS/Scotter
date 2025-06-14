@@ -149,7 +149,9 @@ func (m *BuildTargetManager) AddBuildTarget(target model.BuildTarget) error {
       GOOS: %s
       GOARCH: %s
     generates:
-      - {{.BINARY_NAME}}-%s-%s{{exeExt}}`, 
+      - "{{.BINARY_NAME}}-%s-%s{{exeExt}}"
+
+`, 
     taskName, target.OS, target.Arch, 
     target.OS, target.Arch, 
     target.OS, target.Arch,
@@ -186,6 +188,18 @@ func (m *BuildTargetManager) AddBuildTarget(target model.BuildTarget) error {
 	}
 	
 	// Insert the new task
+	// Ensure the new task is properly separated from existing tasks
+	// by analyzing the last line before insertion
+	hasNewlineBefore := false
+	if insertPosition > 0 && insertPosition < len(lines) && strings.TrimSpace(lines[insertPosition]) == "" {
+		hasNewlineBefore = true
+	}
+	
+	// If the new task doesn't already have a newline before it, add one
+	if !hasNewlineBefore {
+		newTaskContent = "\n" + newTaskContent
+	}
+	
 	updatedLines := append(lines[:insertPosition+1], append([]string{newTaskContent}, lines[insertPosition+1:]...)...)
 	
 	// Update the build-all task if it exists

@@ -80,6 +80,9 @@ type GoConfig struct {
 	UseMakeFile bool
 	// BuildTargets specifies the OS/architecture combinations to target
 	BuildTargets []BuildTarget
+	// MainPath specifies the path to the main entry point for applications
+	// If not set, defaults to ./cmd/ProjectName
+	MainPath string
 }
 
 // ContainerFileFormat defines the format of container configuration files
