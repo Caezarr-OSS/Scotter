@@ -1,4 +1,4 @@
-project_name: {{ .ProjectName }}
+project_name: [[ .ProjectName ]]
 
 before:
   hooks:
@@ -14,28 +14,28 @@ builds:
     goarch:
       - amd64
       - arm64
-{{ if or (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library") }}
+[[ if or (eq .Go.ProjectType "library") (eq .Go.ProjectType "local-library") (eq .Go.ProjectType "distributed-library") ]]
     # Configuration for a library
     skip: true    # Skip build for libraries that don't have executables
-{{ else }}
+[[ else ]]
     # Configuration for an application
     # Find the main entry point by priority order
-    {{ if .Go.MainPath }}
-    main: {{ .Go.MainPath }}   # Use the specified path if available
-    {{ else }}
-    main: ./cmd/{{ .ProjectName }}  # Default path
-    {{ end }}
+    [[ if .Go.MainPath ]]
+    main: [[ .Go.MainPath ]]   # Use the specified path if available
+    [[ else ]]
+    main: ./cmd/[[ .ProjectName ]]  # Default path
+    [[ end ]]
     ldflags:
       - -s -w
       - -X main.Version={{`{{.Version}}`}}
       - -X main.CommitSHA={{`{{.Commit}}`}}
       - -X main.BuildDate={{`{{.Date}}`}}
-    binary: {{ .ProjectName }}
-{{ end }}
+    binary: [[ .ProjectName ]]
+[[ end ]]
 
 archives:
   - format: tar.gz
-    name_template: "{{ .ProjectName }}_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}`}}"
+    name_template: "[[ .ProjectName ]]_{{`{{ .Version }}_{{ .Os }}_{{ .Arch }}`}}"
     format_overrides:
       - goos: windows
         format: zip
