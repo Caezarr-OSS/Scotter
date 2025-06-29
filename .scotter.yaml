@@ -1,0 +1,12 @@
+project_name: ""
+project_type: cli
+language: go
+platforms:
+    - linux/amd64
+    - linux/arm64
+    - darwin/amd64
+    - darwin/arm64
+    - windows/amd64
+architectures: []
+release_assets: []
+ci_provider: github
