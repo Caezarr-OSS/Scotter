@@ -5,9 +5,6 @@ on:
     tags:
       - '*'
 
-permissions:
-  contents: write
-
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -22,10 +19,20 @@ jobs:
         with:
           go-version: 1.21.x
           
+      - name: Verify tests pass
+        run: go test -v ./...
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft --version
+          
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
+          distribution: goreleaser
           version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          # Use RELEASE_TOKEN instead of GITHUB_TOKEN as per identified fix
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
