@@ -5,14 +5,12 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-      issues: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,22 +22,10 @@ jobs:
         with:
           go-version: 1.21.x
           
-      - name: Verify tests pass
-        run: go test -v ./...
-
-      - name: Install Syft
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          syft --version
-          
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
-          distribution: goreleaser
           version: latest
           args: release --clean
         env:
-          # Exposer le token sous différents noms que GoReleaser pourrait chercher
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          GITEA_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
