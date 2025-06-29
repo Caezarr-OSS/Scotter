@@ -34,5 +34,7 @@ jobs:
           version: latest
           args: release --clean
         env:
-          # Use RELEASE_TOKEN instead of GITHUB_TOKEN as per identified fix
+          # Exposer le token sous différents noms que GoReleaser pourrait chercher
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITEA_TOKEN: ${{ secrets.RELEASE_TOKEN }}
