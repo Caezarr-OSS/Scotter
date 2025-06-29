@@ -1,0 +1,43 @@
+version: '3'
+
+tasks:
+  copy-templates:
+    desc: Copy template files to the embedded directory
+    cmds:
+      - go run scripts/copy_templates.go
+
+  build:
+    desc: Build Scotter binary
+    deps: [copy-templates]
+    cmds:
+      - go build -o bin/scotter
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v ./...
+
+  lint:
+    desc: Run linters
+    cmds:
+      - go vet ./...
+      - test -z $(gofmt -l .)
+
+  install:
+    desc: Install Scotter locally
+    deps: [copy-templates]
+    cmds:
+      - go install
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin
+      - rm -rf dist
+      - rm -rf internal/embedded/templates/*
+
+  release:
+    desc: Create a new release using GoReleaser
+    deps: [copy-templates]
+    cmds:
+      - goreleaser release --clean
