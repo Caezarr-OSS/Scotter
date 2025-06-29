@@ -1,0 +1,28 @@
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "{{ .ProjectName }}",
+	Short: "{{ .ProjectName }} CLI application",
+	Long:  `{{ .ProjectName }} is a CLI application generated with Scotter.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Hello from {{ .ProjectName }}!")
+	},
+}
+
+func init() {
+	// Add your command flags here
+}
+
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}

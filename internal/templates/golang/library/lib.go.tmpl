@@ -1,0 +1,16 @@
+// Package {{ .ProjectName }} provides functionality for {{ .ProjectName }}.
+package {{ .ProjectName }}
+
+// Version is the current version of the library.
+// This will be automatically updated during the build process.
+const Version = "dev"
+
+// HelloWorld returns a greeting message. This is just an example function.
+func HelloWorld() string {
+	return "Hello from {{ .ProjectName }} library!"
+}
+
+// Add returns the sum of two integers. This is just an example function.
+func Add(a, b int) int {
+	return a + b
+}

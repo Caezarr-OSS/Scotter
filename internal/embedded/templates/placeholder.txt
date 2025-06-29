@@ -1,0 +1,2 @@
+This file is a placeholder to ensure the templates directory is not empty.
+It will be properly populated during the build process with actual templates.
